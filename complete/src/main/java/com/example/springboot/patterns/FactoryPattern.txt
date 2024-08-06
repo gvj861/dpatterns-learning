@@ -1,0 +1,131 @@
+In the Factory Pattern, you can use dependency injection (DI) to autowire the concrete creator in the client code. If you're using a framework like Spring, you can achieve this with annotations such as `@Autowired`.
+
+Here's an example to illustrate how you can autowire a concrete creator in the client code using Spring:
+
+### 1. Define the Product Interface and Concrete Products
+
+```java
+public interface Product {
+    void doSomething();
+}
+
+public class ConcreteProductA implements Product {
+    @Override
+    public void doSomething() {
+        System.out.println("ConcreteProductA doing something");
+    }
+}
+
+public class ConcreteProductB implements Product {
+    @Override
+    public void doSomething() {
+        System.out.println("ConcreteProductB doing something");
+    }
+}
+```
+
+### 2. Define the Creator Interface and Concrete Creators
+
+```java
+public interface Creator {
+    Product createProduct();
+}
+
+@Component
+public class ConcreteCreatorA implements Creator {
+    @Override
+    public Product createProduct() {
+        return new ConcreteProductA();
+    }
+}
+
+@Component
+public class ConcreteCreatorB implements Creator {
+    @Override
+    public Product createProduct() {
+        return new ConcreteProductB();
+    }
+}
+```
+
+### 3. Autowire the Concrete Creator in the Client Code
+
+```java
+@Component
+public class Client {
+
+    private final Creator creator;
+
+    @Autowired
+    public Client(Creator creator) {
+        this.creator = creator;
+    }
+
+    public void doWork() {
+        Product product = creator.createProduct();
+        product.doSomething();
+    }
+}
+```
+
+### 4. Configuration Class (if needed)
+
+If you have multiple concrete creators and you want to inject a specific one, you can use a configuration class or qualifiers:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public Client client(Creator creator) {
+        return new Client(creator);
+    }
+}
+```
+
+### 5. Application Main Class
+
+```java
+@SpringBootApplication
+public class Application {
+
+    public static void main(String[] args) {
+        ApplicationContext context = SpringApplication.run(Application.class, args);
+        Client client = context.getBean(Client.class);
+        client.doWork();
+    }
+}
+```
+
+### Using Qualifiers for Multiple Implementations
+
+If you have multiple `Creator` implementations and want to specify which one to autowire, you can use the `@Qualifier` annotation:
+
+```java
+@Component
+public class Client {
+
+    private final Creator creator;
+
+    @Autowired
+    public Client(@Qualifier("concreteCreatorA") Creator creator) {
+        this.creator = creator;
+    }
+
+    public void doWork() {
+        Product product = creator.createProduct();
+        product.doSomething();
+    }
+}
+```
+
+In this case, `@Qualifier("concreteCreatorA")` ensures that `ConcreteCreatorA` is injected into the `Client`.
+
+By following this approach, you can autowire the concrete creator in your client code, allowing for a flexible and decoupled design using the Factory Pattern with Spring's dependency injection capabilities.
+
+
+Note :
+
+In the given example, if you use the configuration class to define the Client bean, Spring will automatically wire the Creator bean into the Client.
+However, if there are multiple Creator implementations, Spring needs to know which one to inject.
+Without any specific qualifier or further configuration, Spring will not know which Creator to use and will throw an error.
