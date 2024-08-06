@@ -1,0 +1,126 @@
+The Builder Pattern is a creational design pattern that allows for the construction of complex objects step by step. It provides more control over the construction process compared to constructors or the Factory Pattern,
+especially when an object has many fields, some of which are optional.
+
+### Steps to Implement the Builder Pattern in Java
+
+1. **Define the Product Class**
+2. **Define the Builder Class**
+3. **Implement the Builder in the Product Class**
+4. **Create the Client Code to Use the Builder**
+
+Let's walk through a complete implementation of the Builder Pattern with an example. We'll create a `House` class that has many attributes.
+
+### 1. Define the Product Class
+
+```java
+public class House {
+    // Required parameters
+    private String foundation;
+    private String structure;
+    private String roof;
+
+    // Optional parameters
+    private boolean hasGarage;
+    private boolean hasSwimmingPool;
+    private boolean hasGarden;
+    private boolean hasStatues;
+
+    private House(HouseBuilder builder) {
+        this.foundation = builder.foundation;
+        this.structure = builder.structure;
+        this.roof = builder.roof;
+        this.hasGarage = builder.hasGarage;
+        this.hasSwimmingPool = builder.hasSwimmingPool;
+        this.hasGarden = builder.hasGarden;
+        this.hasStatues = builder.hasStatues;
+    }
+
+    @Override
+    public String toString() {
+        return "House [foundation=" + foundation + ", structure=" + structure + ", roof=" + roof
+                + ", hasGarage=" + hasGarage + ", hasSwimmingPool=" + hasSwimmingPool
+                + ", hasGarden=" + hasGarden + ", hasStatues=" + hasStatues + "]";
+    }
+}
+```
+
+### 2. Define the Builder Class
+
+```java
+public static class HouseBuilder {
+    // Required parameters
+    private String foundation;
+    private String structure;
+    private String roof;
+
+    // Optional parameters
+    private boolean hasGarage;
+    private boolean hasSwimmingPool;
+    private boolean hasGarden;
+    private boolean hasStatues;
+
+    public HouseBuilder(String foundation, String structure, String roof) {
+        this.foundation = foundation;
+        this.structure = structure;
+        this.roof = roof;
+    }
+
+    public HouseBuilder setHasGarage(boolean hasGarage) {
+        this.hasGarage = hasGarage;
+        return this;
+    }
+
+    public HouseBuilder setHasSwimmingPool(boolean hasSwimmingPool) {
+        this.hasSwimmingPool = hasSwimmingPool;
+        return this;
+    }
+
+    public HouseBuilder setHasGarden(boolean hasGarden) {
+        this.hasGarden = hasGarden;
+        return this;
+    }
+
+    public HouseBuilder setHasStatues(boolean hasStatues) {
+        this.hasStatues = hasStatues;
+        return this;
+    }
+
+    public House build() {
+        return new House(this);
+    }
+}
+```
+
+### 3. Integrate Builder in the Product Class
+
+The `House` class already has the `HouseBuilder` class as a static inner class and a private constructor that takes a `HouseBuilder` instance. This ensures that `House` objects can only be created through the `HouseBuilder`.
+
+### 4. Create the Client Code to Use the Builder
+
+```java
+public class Client {
+    public static void main(String[] args) {
+        House house = new House.HouseBuilder("Concrete", "Brick", "Tiles")
+                .setHasGarage(true)
+                .setHasSwimmingPool(true)
+                .setHasGarden(false)
+                .setHasStatues(true)
+                .build();
+
+        System.out.println(house);
+    }
+}
+```
+
+### Summary
+
+In this example, the `House` class is the complex object we want to build. The `HouseBuilder` class helps in constructing the `House` object step by step by setting optional and required parameters.
+The `Client` class demonstrates how to use the builder to create a `House` object.
+
+This implementation provides a clear, readable, and flexible way to create instances of complex objects, especially when dealing with numerous optional parameters.
+
+@NOTES
+
+Lombok is a library that helps reduce boilerplate code in Java by generating common methods and patterns through annotations.
+When it comes to implementing a Builder pattern, Lombok provides a @Builder annotation, which simplifies the creation of builders for classes.
+Internally, Lombok uses annotation processing to generate the necessary builder code at compile time.

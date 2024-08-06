@@ -2,6 +2,7 @@ package com.example.springboot;
 
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
+import com.example.springboot.house.House;
 import com.example.springboot.repo.User;
 import com.example.springboot.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +21,22 @@ public class HelloController {
 
 	private LocalDateTime startTime;
 
-	@Autowired
-	private final HtmlDialog dialog;
+	private static Dialog dialog;
 
-	@GetMapping("/")
+    @GetMapping("/")
 	public List<User> index() {
 		startTime = LocalDateTime.now();
+		dialog = new HtmlDialog();
 		dialog.renderWindow();
+
+		House house = new House.HouseBuilder("Concrete", "Brick", "Tiles")
+				.setHasGarage(true)
+				.setHasSwimmingPool(true)
+				.setHasGarden(false)
+				.setHasStatues(true)
+				.build();
+		System.out.println(house);
+
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
 		return res;
