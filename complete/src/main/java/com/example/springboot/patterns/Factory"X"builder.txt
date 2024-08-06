@@ -1,0 +1,159 @@
+Yes, you can combine the Factory pattern and the Builder pattern in the same codebase, and it can be quite effective in real-world scenarios. This combination leverages the strengths of both patterns: the Factory pattern for creating instances of objects and the Builder pattern for constructing complex objects step-by-step.
+
+### Enhanced Design with Type Safety
+
+1. **Define a Common Builder Interface**
+2. **Concrete Builders Implement the Common Interface**
+3. **Factory Class with Generics**
+4. **Client Code**
+
+### 1. Define a Common Builder Interface
+
+```java
+public interface HouseBuilder<T extends House> {
+    T build();
+}
+```
+
+### 2. Concrete Builders Implement the Common Interface
+
+#### CottageBuilder
+
+```java
+public class Cottage implements House {
+    private String foundation;
+    private String structure;
+    private String roof;
+    private boolean hasGarden;
+
+    private Cottage(CottageBuilder builder) {
+        this.foundation = builder.foundation;
+        this.structure = builder.structure;
+        this.roof = builder.roof;
+        this.hasGarden = builder.hasGarden;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Cottage with foundation: " + foundation + ", structure: " + structure + ", roof: " + roof + (hasGarden ? ", and a garden." : ".");
+    }
+
+    public static class CottageBuilder implements HouseBuilder<Cottage> {
+        private String foundation;
+        private String structure;
+        private String roof;
+        private boolean hasGarden;
+
+        public CottageBuilder(String foundation, String structure, String roof) {
+            this.foundation = foundation;
+            this.structure = structure;
+            this.roof = roof;
+        }
+
+        public CottageBuilder setHasGarden(boolean hasGarden) {
+            this.hasGarden = hasGarden;
+            return this;
+        }
+
+        @Override
+        public Cottage build() {
+            return new Cottage(this);
+        }
+    }
+}
+```
+
+#### VillaBuilder
+
+```java
+public class Villa implements House {
+    private String foundation;
+    private String structure;
+    private String roof;
+    private boolean hasSwimmingPool;
+
+    private Villa(VillaBuilder builder) {
+        this.foundation = builder.foundation;
+        this.structure = builder.structure;
+        this.roof = builder.roof;
+        this.hasSwimmingPool = builder.hasSwimmingPool;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Villa with foundation: " + foundation + ", structure: " + structure + ", roof: " + roof + (hasSwimmingPool ? ", and a swimming pool." : ".");
+    }
+
+    public static class VillaBuilder implements HouseBuilder<Villa> {
+        private String foundation;
+        private String structure;
+        private String roof;
+        private boolean hasSwimmingPool;
+
+        public VillaBuilder(String foundation, String structure, String roof) {
+            this.foundation = foundation;
+            this.structure = structure;
+            this.roof = roof;
+        }
+
+        public VillaBuilder setHasSwimmingPool(boolean hasSwimmingPool) {
+            this.hasSwimmingPool = hasSwimmingPool;
+            return this;
+        }
+
+        @Override
+        public Villa build() {
+            return new Villa(this);
+        }
+    }
+}
+```
+
+### 3. Factory Class with Generics
+
+```java
+public class HouseFactory {
+    public static <T extends House> T createHouse(Class<T> houseType, HouseBuilder<T> builder) {
+        return builder.build();
+    }
+}
+```
+
+### 4. Client Code
+
+```java
+public class Client {
+    public static void main(String[] args) {
+        // Build a cottage
+        HouseBuilder<Cottage> cottageBuilder = new Cottage.CottageBuilder("Concrete", "Wood", "Shingles")
+                .setHasGarden(true);
+        Cottage cottage = HouseFactory.createHouse(Cottage.class, cottageBuilder);
+        System.out.println(cottage.getDescription());
+
+        // Build a villa
+        HouseBuilder<Villa> villaBuilder = new Villa.VillaBuilder("Concrete", "Brick", "Tiles")
+                .setHasSwimmingPool(true);
+        Villa villa = HouseFactory.createHouse(Villa.class, villaBuilder);
+        System.out.println(villa.getDescription());
+
+        // Attempting to build a cottage with a villa builder will result in a compile-time error
+        // HouseBuilder<Cottage> invalidBuilder = new Villa.VillaBuilder("Concrete", "Brick", "Tiles");
+        // Cottage invalidCottage = HouseFactory.createHouse(Cottage.class, invalidBuilder); // This line will cause a compile error
+    }
+}
+```
+
+### Explanation
+
+1. **Common Builder Interface**: `HouseBuilder` ensures that all builders conform to a common build method, returning the correct type.
+2. **Concrete Builders**: `CottageBuilder` and `VillaBuilder` implement the `HouseBuilder` interface.
+3. **Factory with Generics**: The factory method uses generics to enforce type safety, ensuring that the builder provided matches the type of house to be built.
+4. **Client Code**: Demonstrates the correct usage of builders and prevents misuse, such as trying to build a `Cottage` with a `VillaBuilder`.
+
+### Benefits
+
+- **Type Safety**: Ensures that the correct builder is used for the corresponding house type at compile-time, preventing runtime errors.
+- **Flexibility and Scalability**: Allows easy addition of new house types and builders.
+- **Clear Separation of Concerns**: Maintains clear responsibilities between different parts of the codebase.
+
+By combining the Factory and Builder patterns with type safety, you achieve a robust and maintainable design that enforces correct usage and reduces the likelihood of errors.
