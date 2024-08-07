@@ -1,0 +1,82 @@
+You're right; the `ddb = dynamoDB;` assignment appears twice in the method for a specific reason, which is part of the "double-checked locking" pattern. Let me explain its role and importance:
+
+### Double-Checked Locking
+
+The double-checked locking pattern is used to reduce the overhead of acquiring a lock by first checking the locking criterion without actually acquiring the lock. Only if the condition is not met (i.e., the instance is null), the lock is acquired, and the condition is checked again inside the synchronized block to ensure thread safety.
+
+Here's a detailed explanation of the two assignments of `ddb = dynamoDB;`:
+
+1. **First Check (Outside Synchronized Block)**:
+   - This check happens before entering the synchronized block to avoid the cost of synchronization if the instance is already initialized.
+   - The first `ddb = dynamoDB;` reads the volatile `dynamoDB` variable into the local variable `ddb`.
+
+```java
+DynamoDB ddb = dynamoDB;
+if (ddb == null) {
+    synchronized (DynamoDB.class) {
+        // Second check and possible initialization happen here
+    }
+}
+```
+
+2. **Second Check (Inside Synchronized Block)**:
+   - This second check happens inside the synchronized block to ensure that no other thread has initialized the instance while the current thread was waiting to enter the block.
+   - The second `ddb = dynamoDB;` ensures that the local variable `ddb` is updated with the latest value of the volatile `dynamoDB` after acquiring the lock.
+
+```java
+synchronized (DynamoDB.class) {
+    ddb = dynamoDB;
+    if (ddb == null) {
+        dynamoDB = ddb = new DynamoDB(connectionString);
+    }
+}
+```
+
+### Complete Code with Explanation
+
+Here is your complete Singleton implementation with detailed comments:
+
+```java
+package com.example.springboot.DBInstance;
+
+public final class DynamoDB {
+
+    private static volatile DynamoDB dynamoDB;
+    private String connectionString;
+
+    private DynamoDB(String connectionString) {
+        this.connectionString = connectionString;
+    }
+
+    public static DynamoDB getDynamoDBInstance(String connectionString) {
+        // First check (without synchronization)
+        DynamoDB ddb = dynamoDB;
+        if (ddb == null) {
+            synchronized (DynamoDB.class) {
+                // Second check (with synchronization)
+                ddb = dynamoDB;
+                if (ddb == null) {
+                    // Instance creation
+                    dynamoDB = ddb = new DynamoDB(connectionString);
+                }
+            }
+        }
+        // Return the single instance
+        return ddb;
+    }
+}
+```
+
+### Summary
+
+- **First `ddb = dynamoDB;`**: Quick check to see if the instance is already initialized, avoiding the cost of synchronization.
+- **Second `ddb = dynamoDB;`**: Ensures that the local variable `ddb` is correctly updated within the synchronized block, accounting for any initialization that might have occurred while the current thread was waiting to enter the synchronized block.
+
+This pattern ensures thread-safe lazy initialization of the Singleton instance with minimal performance overhead.
+
+#### Local Variable that is introduced
+
+Using a local variable ddb inside the getDynamoDBInstance method has performance benefits.
+By reading the volatile field dynamoDB once into the local variable ddb, you reduce the number of times you need to access the volatile variable,
+which can be more expensive than accessing a local variable.
+This is known as the "double-checked locking" pattern.

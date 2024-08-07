@@ -1,5 +1,6 @@
 package com.example.springboot;
 
+import com.example.springboot.DBInstance.DynamoDB;
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
 import com.example.springboot.house.House;
@@ -36,6 +37,10 @@ public class HelloController {
 				.setHasStatues(true)
 				.build();
 		System.out.println(house);
+
+		DynamoDB dynamoDB = DynamoDB.getDynamoDBInstance("abcd");
+		DynamoDB dynamoDB1 = DynamoDB.getDynamoDBInstance("abcdef");
+		System.out.println(dynamoDB + " " + dynamoDB1 + " " + dynamoDB1.equals(dynamoDB));
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
