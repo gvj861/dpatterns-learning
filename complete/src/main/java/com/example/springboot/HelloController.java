@@ -1,8 +1,11 @@
 package com.example.springboot;
 
 import com.example.springboot.DBInstance.DynamoDB;
+import com.example.springboot.DocManager.DocumentManager;
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
+import com.example.springboot.document.Document;
+import com.example.springboot.document.TextDoc;
 import com.example.springboot.house.House;
 import com.example.springboot.repo.User;
 import com.example.springboot.repo.UserRepo;
@@ -41,6 +44,15 @@ public class HelloController {
 		DynamoDB dynamoDB = DynamoDB.getDynamoDBInstance("abcd");
 		DynamoDB dynamoDB1 = DynamoDB.getDynamoDBInstance("abcdef");
 		System.out.println(dynamoDB + " " + dynamoDB1 + " " + dynamoDB1.equals(dynamoDB));
+
+		DocumentManager dm = new DocumentManager();
+		TextDoc d1 = (TextDoc) dm.createDocument("text");
+		TextDoc d2 = (TextDoc) dm.createDocument("text");
+		System.out.println(d1.getContent() + " " + d2.getContent());
+		d2.setContent("NO NI");
+		System.out.println(d1.getContent() + " " + d2.getContent());
+
+
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
