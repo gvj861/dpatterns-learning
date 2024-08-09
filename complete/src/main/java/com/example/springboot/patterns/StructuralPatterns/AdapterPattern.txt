@@ -175,3 +175,103 @@ Here, `HttpServletRequest` and `HttpServletResponse` are adapters that provide a
 - **Simplification**: Adapters hide the complexities of conversion or interaction between different interfaces.
 
 These examples illustrate how the Adapter Pattern is used in standard Java libraries to provide seamless integration and compatibility between different components or systems with incompatible interfaces.
+
+
+
+
+
+
+
+
+------ EXTRA ------
+
+
+To design an adapter that allows both `ClassicPaymentProcessor` (which already implements the `PaymentProcessor` interface) and `RazorpayPaymentProcessor` (which has a `makePayment()` method), you can follow these steps:
+
+### Step 1: Define the `PaymentProcessor` Interface
+
+This interface is the contract that both `ClassicPaymentProcessor` and the adapter for `RazorpayPaymentProcessor` will implement.
+
+```java
+// Target interface
+public interface PaymentProcessor {
+    void pay(double amount);
+}
+```
+
+### Step 2: Implement the `ClassicPaymentProcessor`
+
+This is your existing class that directly implements the `PaymentProcessor` interface.
+
+```java
+// Existing implementation
+public class ClassicPaymentProcessor implements PaymentProcessor {
+    @Override
+    public void pay(double amount) {
+        System.out.println("Payment of $" + amount + " processed using ClassicPaymentProcessor");
+    }
+}
+```
+
+### Step 3: Create the `RazorpayPaymentProcessor`
+
+This class is provided by the third-party library and has a different method signature (`makePayment()` instead of `pay()`).
+
+```java
+// Third-party service
+public class RazorpayPaymentProcessor {
+    public void makePayment(double amount) {
+        System.out.println("Payment of $" + amount + " processed using RazorpayPaymentProcessor");
+    }
+}
+```
+
+### Step 4: Design the `RazorpayPaymentAdapter`
+
+The adapter will implement the `PaymentProcessor` interface and delegate the call to `makePayment()` on the `RazorpayPaymentProcessor`.
+
+```java
+// Adapter for RazorpayPaymentProcessor
+public class RazorpayPaymentAdapter implements PaymentProcessor {
+    private final RazorpayPaymentProcessor razorpayPaymentProcessor;
+
+    // Constructor for dependency injection
+    public RazorpayPaymentAdapter(RazorpayPaymentProcessor razorpayPaymentProcessor) {
+        this.razorpayPaymentProcessor = razorpayPaymentProcessor;
+    }
+
+    @Override
+    public void pay(double amount) {
+        // Adapt the method call to the Razorpay's makePayment method
+        razorpayPaymentProcessor.makePayment(amount);
+    }
+}
+```
+
+### Step 5: Using the `PaymentProcessor` Interface
+
+Now, the client code can use both `ClassicPaymentProcessor` and `RazorpayPaymentAdapter` interchangeably since both implement the `PaymentProcessor` interface.
+
+```java
+public class PaymentClient {
+    public static void main(String[] args) {
+        // Using ClassicPaymentProcessor
+        PaymentProcessor classicProcessor = new ClassicPaymentProcessor();
+        classicProcessor.pay(100.0);
+
+        // Using RazorpayPaymentAdapter
+        RazorpayPaymentProcessor razorpayService = new RazorpayPaymentProcessor();
+        PaymentProcessor razorpayProcessor = new RazorpayPaymentAdapter(razorpayService);
+        razorpayProcessor.pay(200.0);
+    }
+}
+```
+
+### Summary
+
+- **Interface (`PaymentProcessor`)**: Defines the contract that both the `ClassicPaymentProcessor` and the adapter (`RazorpayPaymentAdapter`) must follow.
+- **Existing Implementation (`ClassicPaymentProcessor`)**: Continues to work as before, implementing the `PaymentProcessor` interface directly.
+- **Adapter (`RazorpayPaymentAdapter`)**: Adapts the `RazorpayPaymentProcessor` so that it can be used wherever a `PaymentProcessor` is expected, by implementing the `PaymentProcessor` interface and delegating the `pay()` method to `RazorpayPaymentProcessor`'s `makePayment()` method.
+- **Client (`PaymentClient`)**: Can now use both `ClassicPaymentProcessor` and `RazorpayPaymentAdapter` transparently, with no changes needed to client code.
+
+This design ensures that both the existing `ClassicPaymentProcessor` and the new `RazorpayPaymentProcessor` can be used within the same application through the common `PaymentProcessor` interface, leveraging the Adapter Pattern to integrate the third-party service.
