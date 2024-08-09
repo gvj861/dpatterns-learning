@@ -1,0 +1,177 @@
+The Adapter Pattern is a structural design pattern that allows incompatible interfaces to work together. It acts as a bridge between two incompatible interfaces by wrapping an existing class with a new interface that clients expect.
+
+### Key Concepts of Adapter Pattern
+
+1. **Target Interface**: The interface that the client expects to use.
+2. **Adaptee**: The existing class that needs to be adapted to the target interface.
+3. **Adapter**: A wrapper class that implements the target interface and translates the client’s requests into calls to the Adaptee.
+4. **Client**: The class that interacts with the Adapter via the target interface.
+
+### When to Use the Adapter Pattern
+
+- When you want to use an existing class, but its interface is not compatible with the system.
+- When you need to create a reusable class that cooperates with unrelated or unforeseen classes, that is, classes that don’t necessarily have compatible interfaces.
+- When you need to use several existing subclasses, but it’s impractical to adapt their interface by subclassing every one. Instead, you can create an adapter that works with the base class.
+
+### Example: Real-World Implementation in Java
+
+Let's consider a scenario where you have an application that processes payment using a `PaymentProcessor` interface. However, you have a third-party library that processes payment differently with a class `ThirdPartyPaymentService`. To integrate the third-party service with your application, you need to adapt it to the `PaymentProcessor` interface.
+
+#### Step 1: Define the Target Interface
+
+```java
+// Target interface
+public interface PaymentProcessor {
+    void pay(double amount);
+}
+```
+
+#### Step 2: Implement the Adaptee
+
+This is the existing class that you want to adapt.
+
+```java
+// Adaptee
+public class ThirdPartyPaymentService {
+    public void makePayment(double value) {
+        System.out.println("Payment of $" + value + " made using ThirdPartyPaymentService");
+    }
+}
+```
+
+#### Step 3: Implement the Adapter
+
+The Adapter implements the `PaymentProcessor` interface and wraps the `ThirdPartyPaymentService` class.
+
+```java
+// Adapter
+public class PaymentAdapter implements PaymentProcessor {
+    private ThirdPartyPaymentService thirdPartyPaymentService;
+
+    public PaymentAdapter(ThirdPartyPaymentService thirdPartyPaymentService) {
+        this.thirdPartyPaymentService = thirdPartyPaymentService;
+    }
+
+    @Override
+    public void pay(double amount) {
+        // Adapt the method call to the Adaptee's method
+        thirdPartyPaymentService.makePayment(amount);
+    }
+}
+```
+
+#### Step 4: Use the Adapter in the Client
+
+The client will use the `PaymentProcessor` interface, which now works with the `ThirdPartyPaymentService` through the adapter.
+
+```java
+// Client
+public class PaymentClient {
+    public static void main(String[] args) {
+        ThirdPartyPaymentService thirdPartyService = new ThirdPartyPaymentService();
+        PaymentProcessor paymentProcessor = new PaymentAdapter(thirdPartyService);
+
+        // Client calls the target interface method
+        paymentProcessor.pay(100.0);
+    }
+}
+```
+
+### Explanation
+
+- **Target Interface (`PaymentProcessor`)**: This is the interface your client code will use.
+- **Adaptee (`ThirdPartyPaymentService`)**: This is the existing class that you need to adapt to the `PaymentProcessor` interface.
+- **Adapter (`PaymentAdapter`)**: This class implements the `PaymentProcessor` interface and uses the `ThirdPartyPaymentService` to fulfill the client’s request.
+- **Client (`PaymentClient`)**: The client code uses the `PaymentProcessor` interface, which allows it to use `ThirdPartyPaymentService` transparently via the `PaymentAdapter`.
+
+### Real-World Analogy
+
+Imagine you have a smartphone charger (Target) that requires a USB-C port, but your older phone (Adaptee) only has a Micro-USB port. The Adapter is a USB-C to Micro-USB adapter that allows you to use your old phone with the new charger.
+
+### Advantages of Adapter Pattern
+
+- **Reusability**: It allows reusing existing classes even if their interfaces are incompatible with the rest of the system.
+- **Separation of Concerns**: The Adapter separates the concerns of the client and the Adaptee, allowing them to evolve independently.
+- **Flexibility**: It makes it easier to replace or modify Adaptees without changing the client code.
+
+### Disadvantages of Adapter Pattern
+
+- **Complexity**: It adds a layer of complexity due to the introduction of additional classes and interfaces.
+- **Overuse**: Overusing this pattern can lead to overly complex code and make the design harder to understand.
+
+This pattern is widely used in real-world applications, especially when integrating third-party libraries or legacy systems into new applications.
+
+
+----------
+
+In Java, several inbuilt libraries and frameworks use the Adapter Pattern to provide interoperability between different components or systems. Here are a few examples from standard Java libraries where the Adapter Pattern is used:
+
+### 1. `java.util.Arrays.asList()`
+
+The `Arrays.asList()` method provides a fixed-size list backed by an array. However, its return type (`List<T>`) is an interface, and the actual implementation (`ArrayList<T>`) is hidden. This method acts as an adapter to convert an array to a list.
+
+```java
+String[] array = { "apple", "banana", "cherry" };
+List<String> list = Arrays.asList(array);
+
+System.out.println(list);  // Output: [apple, banana, cherry]
+```
+
+### 2. `java.io.InputStream` and `java.io.OutputStream`
+
+The `InputStream` and `OutputStream` classes in Java IO use the Adapter Pattern extensively to adapt different data sources and sinks to a common interface for reading and writing data.
+
+```java
+// Example of reading from InputStream
+InputStream inputStream = new FileInputStream("file.txt");
+BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+String line = reader.readLine();
+System.out.println(line);
+inputStream.close();
+
+// Example of writing to OutputStream
+OutputStream outputStream = new FileOutputStream("output.txt");
+PrintWriter writer = new PrintWriter(outputStream);
+writer.println("Hello, world!");
+writer.close();
+```
+
+Here, `InputStreamReader` and `OutputStreamWriter` act as adapters, converting byte-oriented streams (like `FileInputStream` and `FileOutputStream`) into character-oriented streams (`BufferedReader` and `PrintWriter`).
+
+### 3. `java.util.Collections.list()`
+
+The `Collections.list()` method adapts an `Enumeration` (which is an older interface) to a `List`. This allows code written using older API (like those using `Enumeration`) to work with newer API (like `List`).
+
+```java
+Vector<String> vector = new Vector<>();
+vector.add("apple");
+vector.add("banana");
+vector.add("cherry");
+
+Enumeration<String> enumeration = vector.elements();
+List<String> list = Collections.list(enumeration);
+
+System.out.println(list);  // Output: [apple, banana, cherry]
+```
+
+### 4. `javax.servlet.ServletRequest` and `javax.servlet.ServletResponse`
+
+In the Servlet API, the `ServletRequest` and `ServletResponse` interfaces act as adapters between the generic servlet container and specific HTTP request and response handling.
+
+```java
+public void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+    PrintWriter out = response.getWriter();
+    out.println("Hello, world!");
+}
+```
+
+Here, `HttpServletRequest` and `HttpServletResponse` are adapters that provide a higher-level API to handle HTTP requests and responses.
+
+### Key Points
+
+- **Purpose**: In these examples, the Adapter Pattern is used to convert one interface into another that a client expects.
+- **Flexibility**: It allows components to work together that otherwise couldn't due to incompatible interfaces.
+- **Simplification**: Adapters hide the complexities of conversion or interaction between different interfaces.
+
+These examples illustrate how the Adapter Pattern is used in standard Java libraries to provide seamless integration and compatibility between different components or systems with incompatible interfaces.

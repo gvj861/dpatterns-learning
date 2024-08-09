@@ -7,6 +7,10 @@ import com.example.springboot.dialog.HtmlDialog;
 import com.example.springboot.document.Document;
 import com.example.springboot.document.TextDoc;
 import com.example.springboot.house.House;
+import com.example.springboot.payment.OriginalPaymentProcessor;
+import com.example.springboot.payment.PaymentAdapter;
+import com.example.springboot.payment.PaymentProcessor;
+import com.example.springboot.payment.RazorPay;
 import com.example.springboot.repo.User;
 import com.example.springboot.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +55,13 @@ public class HelloController {
 		System.out.println(d1.getContent() + " " + d2.getContent());
 		d2.setContent("NO NI");
 		System.out.println(d1.getContent() + " " + d2.getContent());
+
+		PaymentProcessor pp1 = new OriginalPaymentProcessor();
+		pp1.pay();
+		PaymentProcessor pp = new PaymentAdapter(new RazorPay());
+		pp.pay();
+
+
 
 
 
