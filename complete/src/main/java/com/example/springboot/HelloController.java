@@ -1,5 +1,9 @@
 package com.example.springboot;
 
+import com.example.springboot.Composite.ArithmeticExpression;
+import com.example.springboot.Composite.Expression;
+import com.example.springboot.Composite.Number;
+import com.example.springboot.Composite.Operation;
 import com.example.springboot.DBInstance.DynamoDB;
 import com.example.springboot.DocManager.DocumentManager;
 import com.example.springboot.dialog.Dialog;
@@ -62,6 +66,12 @@ public class HelloController {
 		pp.pay();
 
 
+		ArithmeticExpression leftExpression = new Number(2);
+		ArithmeticExpression secondNumber = new Number(3);
+		ArithmeticExpression thirdNumber = new Number(4);
+		ArithmeticExpression rightExpression = new Expression(secondNumber,thirdNumber, Operation.ADD);
+		ArithmeticExpression parentExpression = new Expression(leftExpression,rightExpression,Operation.MULTIPLY);
+		System.out.println(parentExpression.evaluate());
 
 
 

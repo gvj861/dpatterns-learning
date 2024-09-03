@@ -15,7 +15,9 @@ The Adapter Pattern is a structural design pattern that allows incompatible inte
 
 ### Example: Real-World Implementation in Java
 
-Let's consider a scenario where you have an application that processes payment using a `PaymentProcessor` interface. However, you have a third-party library that processes payment differently with a class `ThirdPartyPaymentService`. To integrate the third-party service with your application, you need to adapt it to the `PaymentProcessor` interface.
+Let's consider a scenario where you have an application that processes payment using a `PaymentProcessor` interface.
+However, you have a third-party library that processes payment differently with a class `ThirdPartyPaymentService`.
+To integrate the third-party service with your application, you need to adapt it to the `PaymentProcessor` interface.
 
 #### Step 1: Define the Target Interface
 
@@ -86,7 +88,8 @@ public class PaymentClient {
 
 ### Real-World Analogy
 
-Imagine you have a smartphone charger (Target) that requires a USB-C port, but your older phone (Adaptee) only has a Micro-USB port. The Adapter is a USB-C to Micro-USB adapter that allows you to use your old phone with the new charger.
+Imagine you have a smartphone charger (Target) that requires a USB-C port, but your older phone (Adaptee) only has a Micro-USB port.
+The Adapter is a USB-C to Micro-USB adapter that allows you to use your old phone with the new charger.
 
 ### Advantages of Adapter Pattern
 

@@ -3,18 +3,23 @@ The Prototype design pattern is useful in scenarios where creating a new instanc
 ### Real-World Use Case: Document Management System
 
 #### Scenario:
-Consider a document management system where users can create, edit, and duplicate documents. Each document can be of different types, such as text documents, spreadsheets, presentations, etc. Each type of document has a complex structure and initialization process.
+Consider a document management system where users can create, edit, and duplicate documents.
+Each document can be of different types, such as text documents, spreadsheets, presentations, etc.
+Each type of document has a complex structure and initialization process.
 
 #### Problem:
-Creating a new document from scratch each time can be resource-intensive and time-consuming, especially if the document types require complex setup or have many attributes.
+Creating a new document from scratch each time can be resource-intensive and time-consuming,
+especially if the document types require complex setup or have many attributes.
 
 #### Solution:
-Use the Prototype design pattern to create new documents by cloning existing ones. This approach allows for quick duplication of documents with predefined attributes and structure.
+Use the Prototype design pattern to create new documents by cloning existing ones.
+This approach allows for quick duplication of documents with predefined attributes and structure.
 
 #### Implementation:
 
 1. **Prototype Interface**: Define a `clone` method in a prototype interface that all document types will implement.
-2. **Concrete Prototypes**: Implement the `clone` method in concrete document classes (e.g., `TextDocument`, `SpreadsheetDocument`, `PresentationDocument`).
+2. **Concrete Prototypes**: Implement the `clone` method in concrete document classes
+(e.g., `TextDocument`, `SpreadsheetDocument`, `PresentationDocument`).
 3. **Client**: Use the clone method to create new documents.
 
 #### Code Example:
