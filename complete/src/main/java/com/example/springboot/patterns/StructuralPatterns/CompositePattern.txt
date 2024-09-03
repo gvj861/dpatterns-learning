@@ -1,0 +1,148 @@
+The Composite design pattern is a structural pattern used to treat individual objects and compositions of objects uniformly.
+
+It allows you to compose objects into tree structures to represent part-whole hierarchies.
+
+A key point of the Composite pattern is that you can apply operations to both individual objects
+ and compositions of objects using the same interface.
+
+### Key Components of the Composite Pattern:
+1. **Component**: An interface that defines the common operations for both simple and composite objects.
+2. **Leaf**: Represents the simple objects in the composition. A leaf has no children.
+3. **Composite**: Represents the complex objects that may have children (leaves or other composites).
+ It implements the `Component` interface and typically stores child components.
+
+### Example Scenario: File System
+
+Imagine you're designing a file system where both files and directories need to be treated uniformly.
+A directory can contain files or other directories, creating a tree structure.
+
+#### Components:
+- **Component Interface**: `FileSystemItem`
+- **Leaf**: `File` class (a single file)
+- **Composite**: `Directory` class (can contain files and other directories)
+
+### Low-Level Design (LLD)
+
+Let's break down the LLD using Java-like pseudocode:
+
+```java
+// Component Interface
+interface FileSystemItem {
+    void display(String indent);
+    int getSize();
+}
+
+// Leaf Class
+class File implements FileSystemItem {
+    private String name;
+    private int size; // Size in bytes
+
+    public File(String name, int size) {
+        this.name = name;
+        this.size = size;
+    }
+
+    @Override
+    public void display(String indent) {
+        System.out.println(indent + "File: " + name + " (" + size + " bytes)");
+    }
+
+    @Override
+    public int getSize() {
+        return size;
+    }
+}
+
+// Composite Class
+class Directory implements FileSystemItem {
+    private String name;
+    private List<FileSystemItem> items;
+
+    public Directory(String name) {
+        this.name = name;
+        this.items = new ArrayList<>();
+    }
+
+    public void addItem(FileSystemItem item) {
+        items.add(item);
+    }
+
+    public void removeItem(FileSystemItem item) {
+        items.remove(item);
+    }
+
+    @Override
+    public void display(String indent) {
+        System.out.println(indent + "Directory: " + name);
+        for (FileSystemItem item : items) {
+            item.display(indent + "    ");
+        }
+    }
+
+    @Override
+    public int getSize() {
+        int totalSize = 0;
+        for (FileSystemItem item : items) {
+            totalSize += item.getSize();
+        }
+        return totalSize;
+    }
+}
+```
+
+### Usage Example:
+
+```java
+public class FileSystemDemo {
+    public static void main(String[] args) {
+        // Creating files
+        File file1 = new File("file1.txt", 1000);
+        File file2 = new File("file2.txt", 2000);
+        File file3 = new File("file3.txt", 1500);
+
+        // Creating directories
+        Directory rootDirectory = new Directory("root");
+        Directory subDirectory1 = new Directory("subdir1");
+        Directory subDirectory2 = new Directory("subdir2");
+
+        // Adding files to directories
+        rootDirectory.addItem(file1);
+        subDirectory1.addItem(file2);
+        subDirectory2.addItem(file3);
+
+        // Adding subdirectories to the root directory
+        rootDirectory.addItem(subDirectory1);
+        rootDirectory.addItem(subDirectory2);
+
+        // Displaying the file system
+        rootDirectory.display("");
+
+        // Getting total size of the root directory
+        System.out.println("Total size of root directory: " + rootDirectory.getSize() + " bytes");
+    }
+}
+```
+
+### Output:
+```
+Directory: root
+    File: file1.txt (1000 bytes)
+    Directory: subdir1
+        File: file2.txt (2000 bytes)
+    Directory: subdir2
+        File: file3.txt (1500 bytes)
+Total size of root directory: 4500 bytes
+```
+
+### Explanation:
+- **Component Interface (`FileSystemItem`)**: Provides the `display` and `getSize` methods that both `File` and `Directory` must implement.
+- **Leaf (`File`)**: Implements `display` and `getSize` specific to a file.
+- **Composite (`Directory`)**: Contains a list of `FileSystemItem` objects, which could be either `File` or `Directory`. The `display` method recursively displays its contents, and the `getSize` method sums up the sizes of its contents.
+
+### Real-World Example:
+This pattern is frequently used in scenarios like graphical user interfaces (where a component could be a button, text box,
+or container of other components),
+file systems (as shown), or document editing systems where documents contain elements like paragraphs, tables, or images.
+
+The Composite pattern allows us to treat individual objects (like files) and groups of objects (like directories) uniformly,
+which simplifies client code and supports recursive structures.
