@@ -1,5 +1,8 @@
 package com.example.springboot;
 
+import com.example.springboot.BRIDGE.Dog;
+import com.example.springboot.BRIDGE.LandBreathe;
+import com.example.springboot.BRIDGE.LivingThings;
 import com.example.springboot.Composite.ArithmeticExpression;
 import com.example.springboot.Composite.Expression;
 import com.example.springboot.Composite.Number;
@@ -74,6 +77,8 @@ public class HelloController {
 		System.out.println(parentExpression.evaluate());
 
 
+		LivingThings dog = new Dog(new LandBreathe());
+		dog.breatheProcess();
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
