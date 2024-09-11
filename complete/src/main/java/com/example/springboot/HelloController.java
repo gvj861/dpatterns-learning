@@ -8,6 +8,10 @@ import com.example.springboot.Composite.Expression;
 import com.example.springboot.Composite.Number;
 import com.example.springboot.Composite.Operation;
 import com.example.springboot.DBInstance.DynamoDB;
+import com.example.springboot.Decorator.BasePizza;
+import com.example.springboot.Decorator.ExtraCheese;
+import com.example.springboot.Decorator.Jalapeno;
+import com.example.springboot.Decorator.MargheretaPizza;
 import com.example.springboot.DocManager.DocumentManager;
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
@@ -79,6 +83,12 @@ public class HelloController {
 
 		LivingThings dog = new Dog(new LandBreathe());
 		dog.breatheProcess();
+
+
+		BasePizza pizza = new ExtraCheese(new MargheretaPizza());
+		System.out.println(pizza.cost());
+		pizza = new Jalapeno(pizza);
+		System.out.println(pizza.cost());
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
