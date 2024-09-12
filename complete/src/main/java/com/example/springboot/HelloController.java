@@ -13,6 +13,9 @@ import com.example.springboot.Decorator.ExtraCheese;
 import com.example.springboot.Decorator.Jalapeno;
 import com.example.springboot.Decorator.MargheretaPizza;
 import com.example.springboot.DocManager.DocumentManager;
+import com.example.springboot.NullObject.Car;
+import com.example.springboot.NullObject.Vehicle;
+import com.example.springboot.NullObject.VehicleFactory;
 import com.example.springboot.Proxy.IPaymentService;
 import com.example.springboot.Proxy.ProxyRazor;
 import com.example.springboot.Proxy.RazorPayService;
@@ -96,6 +99,13 @@ public class HelloController {
 
 		IPaymentService paymentService = new ProxyRazor(new RazorPayService());
 		paymentService.pay();
+
+		// Null object design pattern
+
+		Vehicle v1 = VehicleFactory.getVehicle("Car");
+		Vehicle v2 = VehicleFactory.getVehicle("Bike");
+		System.out.println(v1.getSeatCapacity());
+		System.out.println(v2.getSeatCapacity()); // Returns 0, and no need to check null
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
