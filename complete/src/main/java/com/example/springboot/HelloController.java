@@ -13,6 +13,9 @@ import com.example.springboot.Decorator.ExtraCheese;
 import com.example.springboot.Decorator.Jalapeno;
 import com.example.springboot.Decorator.MargheretaPizza;
 import com.example.springboot.DocManager.DocumentManager;
+import com.example.springboot.Proxy.IPaymentService;
+import com.example.springboot.Proxy.ProxyRazor;
+import com.example.springboot.Proxy.RazorPayService;
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
 import com.example.springboot.document.Document;
@@ -89,6 +92,10 @@ public class HelloController {
 		System.out.println(pizza.cost());
 		pizza = new Jalapeno(pizza);
 		System.out.println(pizza.cost());
+
+
+		IPaymentService paymentService = new ProxyRazor(new RazorPayService());
+		paymentService.pay();
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
