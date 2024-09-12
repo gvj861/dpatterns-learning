@@ -1,0 +1,179 @@
+### Smart Proxy for Logging/Monitoring
+
+**Smart Proxy** is a type of proxy pattern used to add additional behavior or logic when accessing an object.
+In the context of **logging and monitoring**, a smart proxy can intercept method calls to log information
+about access patterns
+, execution times, or errors, without modifying the original object's behavior.
+
+---
+
+### Real-World Scenario: Monitoring Service Calls
+
+Imagine a **payment processing system** where each transaction involves communication with an external payment gateway.
+To ensure reliability and performance, you want to log every call to the gateway, including details like the method invoked,
+ execution time, and any errors encountered.
+
+Using a **smart proxy**, you can wrap the actual payment service in a proxy that handles logging and monitoring,
+ ensuring that logs are generated for every interaction with the external gateway.
+
+---
+
+### Low-Level Design (LLD) for Smart Proxy with Logging
+
+#### UML Diagram
+
+```
+        +-------------------+
+        |       Client       |
+        +-------------------+
+                 |
+                 v
+        +-------------------+         +-------------------+
+        |   Logging Proxy    | ----->  |  Payment Service   |
+        +-------------------+         +-------------------+
+        | processPayment()   |         | processPayment()   |
+        +-------------------+         +-------------------+
+```
+
+- The **LoggingProxy** adds logging and monitoring capabilities to the **PaymentService**
+without altering the original implementation.
+- The **Client** interacts with the proxy, which transparently forwards requests to the
+ real service while adding logging logic.
+
+---
+
+### Code Example: Smart Proxy with Logging
+
+```java
+// Subject Interface
+public interface PaymentService {
+    void processPayment(String account, double amount);
+}
+
+// Real Subject (Actual Payment Service)
+public class RealPaymentService implements PaymentService {
+    @Override
+    public void processPayment(String account, double amount) {
+        System.out.println("Processing payment of $" + amount + " for account " + account);
+        // Actual payment processing logic (e.g., interacting with a payment gateway)
+    }
+}
+
+// Smart Proxy for Logging
+public class LoggingProxy implements PaymentService {
+    private PaymentService realPaymentService;
+
+    public LoggingProxy(PaymentService realPaymentService) {
+        this.realPaymentService = realPaymentService;
+    }
+
+    @Override
+    public void processPayment(String account, double amount) {
+        // Logging before the actual method call
+        System.out.println("LOG: Payment request for account " + account + " with amount $" + amount);
+        long startTime = System.currentTimeMillis();
+
+        // Delegating the actual work to the real service
+        realPaymentService.processPayment(account, amount);
+
+        // Logging after the actual method call
+        long endTime = System.currentTimeMillis();
+        System.out.println("LOG: Payment processed in " + (endTime - startTime) + "ms");
+    }
+}
+
+// Client Code
+public class Client {
+    public static void main(String[] args) {
+        PaymentService paymentService = new LoggingProxy(new RealPaymentService());
+
+        // Client interacts with the proxy, which logs details and delegates to the real service
+        paymentService.processPayment("12345", 250.00);
+    }
+}
+```
+
+#### Explanation:
+1. **RealPaymentService** implements the actual business logic for processing payments.
+2. **LoggingProxy** wraps the **RealPaymentService**, adding logging before and after the `processPayment()` method call.
+3. **Client** interacts with the **LoggingProxy** rather than the real service directly, ensuring that all
+interactions are logged.
+
+---
+
+### Benefits:
+- **Non-intrusive Logging**: You don’t have to modify the original service code to add logging; the proxy handles it.
+- **Monitoring Execution Time**: The proxy calculates the time taken to process the payment, making it easy to
+monitor performance.
+- **Separation of Concerns**: The core functionality (payment processing) is kept separate
+from the cross-cutting concern (logging).
+
+---
+
+### Enhanced Usage: Monitoring with Exception Handling
+
+In real-world scenarios, you may also want to monitor errors or exceptions.
+The proxy can catch exceptions and log them while allowing the application to handle errors gracefully.
+
+#### Enhanced Code Example with Exception Logging:
+
+```java
+// Smart Proxy for Logging with Error Handling
+public class LoggingProxyWithErrorHandling implements PaymentService {
+    private PaymentService realPaymentService;
+
+    public LoggingProxyWithErrorHandling(PaymentService realPaymentService) {
+        this.realPaymentService = realPaymentService;
+    }
+
+    @Override
+    public void processPayment(String account, double amount) {
+        System.out.println("LOG: Payment request for account " + account + " with amount $" + amount);
+        long startTime = System.currentTimeMillis();
+
+        try {
+            realPaymentService.processPayment(account, amount);
+        } catch (Exception e) {
+            System.out.println("LOG ERROR: Failed to process payment for account " + account);
+            e.printStackTrace();  // Log stack trace
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("LOG: Payment processed in " + (endTime - startTime) + "ms");
+    }
+}
+```
+
+#### Explanation:
+1. **LoggingProxyWithErrorHandling** now wraps the original service and handles exceptions,
+ logging errors if something goes wrong during payment processing.
+2. This version not only tracks execution time but also logs failures, which is crucial for monitoring
+in production environments.
+
+---
+
+### Real-World Usage Scenarios:
+
+1. **API Request Logging**:
+   - In a microservices architecture, you can use smart proxies to log all incoming and outgoing API requests,
+   including metadata like timestamps, request/response sizes, and execution times.
+
+2. **Database Access Logging**:
+   - For database operations, smart proxies can log queries, execution times, and errors,
+   helping developers monitor slow queries or potential bottlenecks.
+
+3. **Security Auditing**:
+   - Proxies can log sensitive operations, like login attempts, data access, or modifications,
+   to ensure compliance with security policies and auditing requirements.
+
+4. **Performance Monitoring**:
+   - In performance-critical systems, smart proxies can monitor execution times for key operations
+   and trigger alerts if certain thresholds are breached.
+
+---
+
+### Summary:
+The **Smart Proxy** for logging and monitoring is a powerful pattern that allows developers to add logging
+and performance monitoring to services without altering their core behavior.
+It enhances maintainability, supports separation of concerns, and is especially useful in
+environments where system performance, security, and operational monitoring are critical.
