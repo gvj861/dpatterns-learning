@@ -1,0 +1,8 @@
+The Null object pattern is a design pattern that simplifies the use of dependencies that can be undefined.
+This is achieved by using instances of a concrete class that implements a known interface,
+instead of null references.
+
+We create an abstract class specifying various operations to be done,
+concrete classes extending this class, and a null object class providing do-nothing implementation
+of this class which will be used seamlessly where we need to check the null value.
+
