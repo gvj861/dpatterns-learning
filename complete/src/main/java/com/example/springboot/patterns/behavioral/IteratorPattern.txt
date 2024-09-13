@@ -1,0 +1,260 @@
+The Iterator Pattern is a design pattern used to traverse a collection of objects without exposing
+the underlying representation. It provides a standard way to access elements sequentially, and
+is particularly useful for collections that have different underlying structures like arrays, lists, or trees.
+
+Here's a basic low-level design (LLD) for the Iterator pattern:
+
+### Components of the Iterator Pattern:
+1. **Iterator Interface**: This interface defines methods for accessing and traversing the elements.
+2. **Concrete Iterator**: A class that implements the `Iterator` interface, providing specific traversal logic.
+3. **Aggregate Interface**: Defines methods for creating an iterator. This could represent the collection.
+4. **Concrete Aggregate**: A class that implements the `Aggregate` interface and returns an iterator specific to the
+ collection.
+
+### Example in Java
+
+#### 1. **Iterator Interface**
+
+```java
+public interface Iterator<T> {
+    boolean hasNext();     // Check if there are more elements
+    T next();              // Get the next element
+}
+```
+
+#### 2. **Concrete Iterator**
+
+```java
+public class ListIterator<T> implements Iterator<T> {
+    private List<T> list;
+    private int index = 0;
+
+    public ListIterator(List<T> list) {
+        this.list = list;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return index < list.size();
+    }
+
+    @Override
+    public T next() {
+        if (hasNext()) {
+            return list.get(index++);
+        }
+        throw new NoSuchElementException();
+    }
+}
+```
+
+#### 3. **Aggregate Interface**
+
+```java
+public interface IterableCollection<T> {
+    Iterator<T> createIterator();
+}
+```
+
+#### 4. **Concrete Aggregate**
+
+```java
+public class CustomList<T> implements IterableCollection<T> {
+    private List<T> items = new ArrayList<>();
+
+    public void addItem(T item) {
+        items.add(item);
+    }
+
+    @Override
+    public Iterator<T> createIterator() {
+        return new ListIterator<>(items);
+    }
+}
+```
+
+#### 5. **Client Code**
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        CustomList<String> list = new CustomList<>();
+        list.addItem("Apple");
+        list.addItem("Banana");
+        list.addItem("Cherry");
+
+        Iterator<String> iterator = list.createIterator();
+
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+}
+```
+
+### Explanation:
+- **Iterator Interface**: Defines the methods `hasNext()` and `next()` for accessing and navigating through the collection.
+- **Concrete Iterator**: `ListIterator` implements the logic for iterating through a list.
+- **Aggregate Interface**: The `IterableCollection` interface defines a method to create an iterator.
+- **Concrete Aggregate**: `CustomList` implements the `IterableCollection` interface and holds a collection of items.
+ It provides a method `createIterator()` to create an iterator.
+
+This design allows for iterating over a collection without knowing the details of its internal structure, adhering
+to the **Single Responsibility** and **Open/Closed** principles.
+
+
+
+-------------
+
+### REAL WORLD PROBLEM ::::::::::::::::: ###
+
+
+
+To design a system that processes a large SQL query result set one row at a time, without loading the entire result into memory, we can apply the **Iterator Pattern** with support for pagination and lazy loading. Here's the detailed approach:
+
+### **Key Requirements:**
+1. **Efficient Memory Usage**: Avoid loading the entire result set into memory.
+2. **Lazy Loading**: Fetch data only when required.
+3. **Pagination Support**: Process data in batches (pages), and load the next batch as needed.
+4. **Seamless Traversal**: The client should be able to iterate over the rows without knowing how the data is being fetched or loaded.
+
+### **Components of the Design:**
+
+1. **Iterator Interface**: Defines methods to access the database rows one by one.
+2. **Concrete Iterator**: Implements the `Iterator` interface to handle row-by-row processing, using lazy loading and pagination.
+3. **Result Set**: The underlying structure that stores the data fetched from the database.
+4. **Pagination Mechanism**: Manages fetching data in small chunks from the database.
+
+### **Low-Level Design (LLD):**
+
+#### 1. **Iterator Interface**
+
+The iterator provides the basic contract to traverse rows in the result set.
+
+```java
+public interface RowIterator<T> {
+    boolean hasNext();  // Check if there are more rows to fetch
+    T next();           // Fetch the next row
+}
+```
+
+#### 2. **Concrete Iterator**
+
+This class will implement the logic for processing the database result set lazily, possibly in batches (pagination).
+
+```java
+public class DatabaseRowIterator<T> implements RowIterator<T> {
+    private final Connection connection;
+    private final String query;
+    private ResultSet resultSet;
+    private PreparedStatement preparedStatement;
+    private int currentPage = 0;
+    private final int pageSize;
+
+    public DatabaseRowIterator(Connection connection, String query, int pageSize) throws SQLException {
+        this.connection = connection;
+        this.query = query;
+        this.pageSize = pageSize;
+        loadNextPage();  // Load the first batch of data
+    }
+
+    @Override
+    public boolean hasNext() {
+        try {
+            if (resultSet == null || resultSet.isAfterLast()) {
+                // If current resultSet is exhausted, load the next page
+                loadNextPage();
+            }
+            return !resultSet.isAfterLast();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public T next() {
+        try {
+            if (hasNext()) {
+                resultSet.next();
+                // Assume each row is mapped to an object of type T
+                return mapRowToEntity(resultSet);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        throw new NoSuchElementException();
+    }
+
+    private void loadNextPage() throws SQLException {
+        if (preparedStatement != null) {
+            preparedStatement.close();  // Close previous statement
+        }
+        preparedStatement = connection.prepareStatement(query + " LIMIT ? OFFSET ?");
+        preparedStatement.setInt(1, pageSize);
+        preparedStatement.setInt(2, currentPage * pageSize);
+
+        resultSet = preparedStatement.executeQuery();
+        currentPage++;
+    }
+
+    // Map ResultSet row to entity object (Assume T is a mapped entity)
+    private T mapRowToEntity(ResultSet resultSet) throws SQLException {
+        // Example mapping logic, assuming T has a constructor that takes ResultSet
+        return (T) new Entity(resultSet);
+    }
+}
+```
+
+#### 3. **Usage Example**
+
+The client code uses the `DatabaseRowIterator` to iterate over database rows without worrying about pagination or memory usage.
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Connection connection = Database.getConnection();
+        String query = "SELECT * FROM large_table";  // Query for large data
+
+        try {
+            RowIterator<Entity> iterator = new DatabaseRowIterator<>(connection, query, 100); // Page size of 100 rows
+
+            while (iterator.hasNext()) {
+                Entity row = iterator.next();
+                // Process each row
+                System.out.println(row);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.close();  // Close the connection
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+### **Design Breakdown:**
+
+1. **`RowIterator` Interface**: Provides a contract for fetching rows (`hasNext()` and `next()` methods).
+2. **`DatabaseRowIterator` Class**:
+   - Manages database connections and SQL query execution.
+   - Fetches rows lazily, one page at a time.
+   - The `hasNext()` method checks if more rows are available, and if the current page is exhausted, it fetches the next page.
+   - The `next()` method returns the current row and moves to the next one.
+   - Pagination is handled by appending `LIMIT` and `OFFSET` to the query.
+3. **`loadNextPage()`**: Loads the next batch of rows into the `ResultSet` from the database.
+4. **`mapRowToEntity()`**: Maps each row of the `ResultSet` to an object of type `T`.
+
+### **Key Design Concepts:**
+
+- **Lazy Loading**: The iterator fetches rows in batches, and only when required, ensuring minimal memory usage.
+- **Pagination Support**: By using `LIMIT` and `OFFSET`, only a fixed number of rows (e.g., 100 rows) are fetched at a time.
+- **Separation of Concerns**: The client does not need to handle pagination, database connections, or query execution, as these are abstracted away by the iterator.
+- **Extendability**: The system can be easily extended to add filters, sorting, or more complex queries.
+
+This design ensures that you can handle large result sets efficiently, processing them one row at a time without running into memory issues.
