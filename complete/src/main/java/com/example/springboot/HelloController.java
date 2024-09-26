@@ -3,6 +3,10 @@ package com.example.springboot;
 import com.example.springboot.BRIDGE.Dog;
 import com.example.springboot.BRIDGE.LandBreathe;
 import com.example.springboot.BRIDGE.LivingThings;
+import com.example.springboot.COR.BalanceCheckHandler;
+import com.example.springboot.COR.FraudCheckHandler;
+import com.example.springboot.COR.PaymentProcessHandler;
+import com.example.springboot.COR.PaymentRequest;
 import com.example.springboot.Composite.ArithmeticExpression;
 import com.example.springboot.Composite.Expression;
 import com.example.springboot.Composite.Number;
@@ -118,6 +122,13 @@ public class HelloController {
 		while (it.hasNext()) {
 			System.out.println(it.next());
 		}
+
+		FraudCheckHandler fc = new FraudCheckHandler();
+		BalanceCheckHandler bc = new BalanceCheckHandler();
+		fc.setNext(bc);
+		bc.setNext(new PaymentProcessHandler());
+
+		fc.processPayment(new PaymentRequest(100, 1000, false));
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());
