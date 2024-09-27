@@ -1,0 +1,176 @@
+The **Strategy Pattern** is a behavioral design pattern that allows selecting an algorithm's behavior at runtime. Instead of implementing a single algorithm directly, code receives run-time instructions as to which in a family of algorithms to use.
+
+### Key Components of Strategy Pattern:
+1. **Context**: Maintains a reference to one of the concrete strategies and communicates with the strategy interface to delegate the work.
+2. **Strategy Interface**: Common interface that all strategies implement. This ensures that the context can call the algorithm without knowing its specific implementation.
+3. **Concrete Strategies**: Implementations of the strategy interface, each providing a different algorithm or behavior.
+
+---
+
+### Real-Life Example: Payment Processing System
+
+Let’s use the example of a **payment processing system** where different payment methods (Credit Card, PayPal, Bitcoin) can be used to make payments. The payment method to be used is selected at runtime.
+
+---
+
+### **Low-Level Design (LLD)**
+
+#### 1. **Strategy Interface (PaymentStrategy)**
+
+```java
+public interface PaymentStrategy {
+    void pay(double amount);
+}
+```
+
+This is the strategy interface that defines the contract for all payment methods.
+
+#### 2. **Concrete Strategies (CreditCardPayment, PayPalPayment, BitcoinPayment)**
+
+```java
+public class CreditCardPayment implements PaymentStrategy {
+
+    private String cardNumber;
+    private String cardHolder;
+
+    public CreditCardPayment(String cardNumber, String cardHolder) {
+        this.cardNumber = cardNumber;
+        this.cardHolder = cardHolder;
+    }
+
+    @Override
+    public void pay(double amount) {
+        System.out.println("Paid " + amount + " using Credit Card");
+    }
+}
+```
+
+```java
+public class PayPalPayment implements PaymentStrategy {
+
+    private String email;
+
+    public PayPalPayment(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public void pay(double amount) {
+        System.out.println("Paid " + amount + " using PayPal");
+    }
+}
+```
+
+```java
+public class BitcoinPayment implements PaymentStrategy {
+
+    private String walletAddress;
+
+    public BitcoinPayment(String walletAddress) {
+        this.walletAddress = walletAddress;
+    }
+
+    @Override
+    public void pay(double amount) {
+        System.out.println("Paid " + amount + " using Bitcoin");
+    }
+}
+```
+
+Each concrete strategy provides a specific implementation of the `pay` method for its payment method.
+
+#### 3. **Context (PaymentContext)**
+
+```java
+public class PaymentContext {
+
+    private PaymentStrategy paymentStrategy;
+
+    // Method to set the strategy dynamically at runtime
+    public void setPaymentStrategy(PaymentStrategy paymentStrategy) {
+        this.paymentStrategy = paymentStrategy;
+    }
+
+    public void makePayment(double amount) {
+        paymentStrategy.pay(amount); // Delegates to the selected strategy
+    }
+}
+```
+
+The `PaymentContext` class is responsible for interacting with the strategy. It allows the client to set the payment strategy at runtime and delegates the payment operation to the selected strategy.
+
+---
+
+### **UML Diagram**:
+
+```plaintext
+        +-----------------+         +-----------------------------+
+        |   PaymentContext |<------->|      PaymentStrategy         |
+        +-----------------+         +-----------------------------+
+                                                 |
+                                                 |
+                | --------------------------------
+                |                                |
+      +--------------------+          +--------------------+
+      | CreditCardPayment   |          |   PayPalPayment    |
+      +--------------------+          +--------------------+
+                |                                |
+                |                                |
+      +--------------------+          +--------------------+
+      |  BitcoinPayment     |
+      +--------------------+
+```
+
+- **Context**: `PaymentContext`
+- **Strategy Interface**: `PaymentStrategy`
+- **Concrete Strategies**: `CreditCardPayment`, `PayPalPayment`, `BitcoinPayment`
+
+---
+
+### **Workflow:**
+1. The client decides which strategy to use (e.g., `CreditCardPayment`, `PayPalPayment`).
+2. The client sets the strategy in the `PaymentContext` using `setPaymentStrategy`.
+3. When the client calls `makePayment`, the context delegates the operation to the selected strategy’s `pay` method.
+4. Each concrete strategy implements its own algorithm for payment processing.
+
+---
+
+### Example Usage in Real Code:
+
+```java
+public class PaymentSystem {
+
+    public static void main(String[] args) {
+        PaymentContext context = new PaymentContext();
+
+        // Using Credit Card payment
+        PaymentStrategy creditCardPayment = new CreditCardPayment("1234-5678-9012-3456", "John Doe");
+        context.setPaymentStrategy(creditCardPayment);
+        context.makePayment(250.00);
+
+        // Using PayPal payment
+        PaymentStrategy payPalPayment = new PayPalPayment("john@example.com");
+        context.setPaymentStrategy(payPalPayment);
+        context.makePayment(150.00);
+
+        // Using Bitcoin payment
+        PaymentStrategy bitcoinPayment = new BitcoinPayment("1ABCdEfGHijkLmNopQRsTUVWxyz");
+        context.setPaymentStrategy(bitcoinPayment);
+        context.makePayment(300.00);
+    }
+}
+```
+
+**Output:**
+```
+Paid 250.0 using Credit Card
+Paid 150.0 using PayPal
+Paid 300.0 using Bitcoin
+```
+
+---
+
+### Benefits of Strategy Pattern:
+- **Open/Closed Principle**: New strategies can be added without changing the context or existing strategies.
+- **Encapsulation of Algorithms**: Each algorithm is encapsulated in a separate class.
+- **Flexible**: Strategies can be chosen at runtime based on user input or other factors.
