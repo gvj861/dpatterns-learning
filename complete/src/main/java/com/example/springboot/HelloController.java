@@ -23,6 +23,9 @@ import com.example.springboot.Iterator.ListIterator;
 import com.example.springboot.NullObject.Car;
 import com.example.springboot.NullObject.Vehicle;
 import com.example.springboot.NullObject.VehicleFactory;
+import com.example.springboot.Observer.TvObserver;
+import com.example.springboot.Observer.VskpWeatherStn;
+import com.example.springboot.Observer.WeatherDomainData;
 import com.example.springboot.Proxy.IPaymentService;
 import com.example.springboot.Proxy.ProxyRazor;
 import com.example.springboot.Proxy.RazorPayService;
@@ -129,6 +132,14 @@ public class HelloController {
 		bc.setNext(new PaymentProcessHandler());
 
 		fc.processPayment(new PaymentRequest(100, 1000, false));
+
+
+		VskpWeatherStn stn = new VskpWeatherStn();
+		TvObserver tv = new TvObserver(stn);
+		stn.add(tv);
+
+		stn.setData(new WeatherDomainData("34", "21"));
+
 
 		List<User> res = userRepo.findAll();
 		System.out.println("Time to process : " + Duration.between(LocalDateTime.now() , startTime).getNano());

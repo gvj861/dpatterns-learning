@@ -1,0 +1,301 @@
+Imagine that you have two types of objects: a Customer and a Store. The customer is very interested in a particular brand of product (say, it’s a new model of the iPhone) which should become available in the store very soon.
+
+The customer could visit the store every day and check product availability.
+But while the product is still en route, most of these trips would be pointless.
+
+Visiting store vs. sending spam
+Visiting the store vs. sending spam
+
+On the other hand, the store could send tons of emails (which might be considered spam) to all customers each time a new product becomes available. This would save some customers from endless trips to the store. At the same time, it’d upset other customers who aren’t interested in new products.
+
+It looks like we’ve got a conflict.
+Either the customer wastes time checking product availability or the store wastes resources notifying the wrong customers.
+
+ Solution
+The object that has some interesting state is often called subject,
+but since it’s also going to notify other objects about the changes to its state,
+ we’ll call it publisher. All other objects that want to track changes to the publisher’s state are called subscribers.
+
+The Observer pattern suggests that you add a subscription mechanism to the
+ publisher class so individual objects can subscribe to or unsubscribe from a stream of events coming from that publisher. Fear not! Everything isn’t as complicated as it sounds. In reality, this mechanism consists of 1) an array field for storing a list of references to subscriber objects and 2) several public methods which allow adding subscribers to and removing them from that list.
+
+Subscription mechanism
+A subscription mechanism lets individual objects subscribe to event notifications.
+
+Now, whenever an important event happens to the publisher,
+it goes over its subscribers and calls the specific notification method on their objects.
+
+Real apps might have dozens of different subscriber classes that are
+interested in tracking events of the same publisher class.
+ You wouldn’t want to couple the publisher to all of those classes.
+Besides, you might not even know about some of them beforehand if your publisher class is supposed to be used by other people.
+
+That’s why it’s crucial that all subscribers implement the same interface and that
+the publisher communicates with them only via that interface. This interface should declare the notification
+method along with a set of parameters that the publisher can use to pass some contextual data along with the notification.
+
+
+-------
+
+### **UML Diagram**:
+
+```plaintext
+ +-------------------+              +-------------------+
+ |    WeatherSubject |<------------>|   WeatherObserver  |
+ +-------------------+              +-------------------+
+       |                                   |
+       |                                   |
+ +-------------------+              +-------------------+
+ |  WeatherStation   |              |   WeatherDisplay   |
+ +-------------------+              +-------------------+
+                                          |
+                                |----------
+                                |         |
+ +-------------------+          |    +-------------------+
+ |     MobileApp     | ----------   |      Website       |
+ +-------------------+              +-------------------+
+
+
+The **Observer Design Pattern** is a behavioral pattern in which an object (called the **Subject**) maintains a list of dependents (called **Observers**) and notifies them of any changes to its state, usually by calling one of their methods.
+
+This pattern is useful when you want to create a one-to-many relationship between objects so that when one object changes state, all its dependents are automatically notified.
+
+---
+
+### Real-Time Scenario: **Weather Monitoring System**
+
+Imagine a **Weather Monitoring System** where different devices (displays, mobile apps, websites) need to be updated when the weather changes. The weather station can be treated as the **Subject**, and the devices that display weather updates can be the **Observers**.
+
+---
+
+### Key Components in the Observer Pattern:
+1. **Subject**: The object that maintains a list of observers and notifies them of state changes.
+2. **Observer**: An interface or abstract class that defines an `update` method to receive updates from the subject.
+3. **Concrete Subject**: A specific implementation of the subject that stores the state and notifies observers.
+4. **Concrete Observer**: A specific implementation of an observer that reacts to state changes in the subject.
+
+---
+
+### **Low-Level Design (LLD)**
+
+#### 1. **Observer Interface**
+
+```java
+public interface WeatherObserver {
+    void update(float temperature, float humidity, float pressure);
+}
+```
+
+This interface defines the `update` method, which will be called by the subject whenever there's a change in the weather conditions.
+
+#### 2. **Subject Interface**
+
+```java
+public interface WeatherSubject {
+    void addObserver(WeatherObserver observer);
+    void removeObserver(WeatherObserver observer);
+    void notifyObservers();
+}
+```
+
+This interface defines methods for adding, removing, and notifying observers. All concrete subjects must implement these methods.
+
+#### 3. **Concrete Subject (WeatherStation)**
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+public class WeatherStation implements WeatherSubject {
+
+    private List<WeatherObserver> observers;
+    private float temperature;
+    private float humidity;
+    private float pressure;
+
+    public WeatherStation() {
+        this.observers = new ArrayList<>();
+    }
+
+    @Override
+    public void addObserver(WeatherObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(WeatherObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (WeatherObserver observer : observers) {
+            observer.update(temperature, humidity, pressure);
+        }
+    }
+
+    // Weather data changes
+    public void setWeatherData(float temperature, float humidity, float pressure) {
+        this.temperature = temperature;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        notifyObservers(); // Notify all observers of the change
+    }
+}
+```
+
+The `WeatherStation` is the **Subject** that holds the state (temperature, humidity, and pressure). It notifies all registered observers when the weather data changes.
+
+#### 4. **Concrete Observer (WeatherDisplay, MobileApp, Website)**
+
+Here’s an example of an observer that displays weather data on a screen:
+
+```java
+public class WeatherDisplay implements WeatherObserver {
+
+    private float temperature;
+    private float humidity;
+    private float pressure;
+
+    @Override
+    public void update(float temperature, float humidity, float pressure) {
+        this.temperature = temperature;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        display(); // Update display when the data changes
+    }
+
+    public void display() {
+        System.out.println("Weather Display Updated: ");
+        System.out.println("Temperature: " + temperature);
+        System.out.println("Humidity: " + humidity);
+        System.out.println("Pressure: " + pressure);
+    }
+}
+```
+
+Similarly, you can implement other observers like a mobile app or website:
+
+```java
+public class MobileApp implements WeatherObserver {
+
+    private float temperature;
+    private float humidity;
+    private float pressure;
+
+    @Override
+    public void update(float temperature, float humidity, float pressure) {
+        this.temperature = temperature;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        displayOnApp(); // Update the app interface
+    }
+
+    public void displayOnApp() {
+        System.out.println("Mobile App Weather Updated: ");
+        System.out.println("Temperature: " + temperature);
+        System.out.println("Humidity: " + humidity);
+        System.out.println("Pressure: " + pressure);
+    }
+}
+```
+
+---
+
+### **UML Diagram**:
+
+```plaintext
+ +-------------------+              +-------------------+
+ |    WeatherSubject |<------------>|   WeatherObserver  |
+ +-------------------+              +-------------------+
+       |                                   |
+       |                                   |
+ +-------------------+              +-------------------+
+ |  WeatherStation   |              |   WeatherDisplay   |
+ +-------------------+              +-------------------+
+                                          |
+                                |----------
+                                |         |
+ +-------------------+          |    +-------------------+
+ |     MobileApp     | ----------   |      Website       |
+ +-------------------+              +-------------------+
+```
+
+- **Subject**: `WeatherStation`
+- **Observer**: `WeatherObserver` interface
+- **Concrete Observers**: `WeatherDisplay`, `MobileApp`, `Website`
+
+---
+
+### **Example Usage**:
+
+```java
+public class WeatherMonitoringSystem {
+
+    public static void main(String[] args) {
+        // Create the subject (WeatherStation)
+        WeatherStation weatherStation = new WeatherStation();
+
+        // Create observers
+        WeatherObserver display = new WeatherDisplay();
+        WeatherObserver mobileApp = new MobileApp();
+
+        // Register observers to the subject
+        weatherStation.addObserver(display);
+        weatherStation.addObserver(mobileApp);
+
+        // Simulate new weather data
+        weatherStation.setWeatherData(25.5f, 65.0f, 1012.0f);
+        weatherStation.setWeatherData(27.0f, 70.0f, 1009.0f);
+    }
+}
+```
+
+**Output:**
+```
+Weather Display Updated:
+Temperature: 25.5
+Humidity: 65.0
+Pressure: 1012.0
+
+Mobile App Weather Updated:
+Temperature: 25.5
+Humidity: 65.0
+Pressure: 1012.0
+
+Weather Display Updated:
+Temperature: 27.0
+Humidity: 70.0
+Pressure: 1009.0
+
+Mobile App Weather Updated:
+Temperature: 27.0
+Humidity: 70.0
+Pressure: 1009.0
+```
+
+---
+
+### **Explanation of the Flow:**
+
+1. **WeatherStation** (subject) holds the weather data.
+2. Observers such as `WeatherDisplay` and `MobileApp` are registered with the weather station.
+3. When new weather data becomes available, the `setWeatherData` method of the weather station updates its state and calls `notifyObservers`, which in turn calls the `update` method of each observer.
+4. Each observer updates itself accordingly and can display the new weather data.
+
+---
+
+### **Advantages of the Observer Pattern:**
+
+- **Loose Coupling**: The subject does not need to know the concrete implementation of the observers; it only knows that they implement the observer interface.
+- **Scalability**: New observers can be added without modifying the subject.
+- **Automatic Updates**: When the subject changes, all observers are automatically notified.
+
+---
+
+### **Real-World Use Cases**:
+
+1. **Stock Market System**: When stock prices change, registered clients are notified in real time.
+2. **Notification System**: Push notifications on mobile apps when server data is updated.
+3. **Event-Driven Systems**: In GUI applications, when a button is clicked (subject), multiple components (observers) are updated or triggered.
+
