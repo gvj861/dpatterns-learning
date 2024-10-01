@@ -29,6 +29,7 @@ import com.example.springboot.Observer.WeatherDomainData;
 import com.example.springboot.Proxy.IPaymentService;
 import com.example.springboot.Proxy.ProxyRazor;
 import com.example.springboot.Proxy.RazorPayService;
+import com.example.springboot.State.ATMMachine;
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
 import com.example.springboot.document.Document;
@@ -139,6 +140,14 @@ public class HelloController {
 		stn.add(tv);
 
 		stn.setData(new WeatherDomainData("34", "21"));
+
+
+		ATMMachine sbi = new ATMMachine();
+		sbi.setCashInMachine(1000);
+		sbi.insertCard();
+		sbi.insertPin(1234);
+		sbi.requestCash(100);
+		sbi.ejectCard();
 
 
 		List<User> res = userRepo.findAll();

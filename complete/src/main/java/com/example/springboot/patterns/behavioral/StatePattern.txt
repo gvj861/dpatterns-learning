@@ -1,0 +1,498 @@
+### **State Design Pattern: LLD & Real-Time Example**
+
+The **State pattern** allows an object to change its behavior when its internal state changes.
+It promotes cleaner code by encapsulating state-specific logic in separate classes and
+enabling transitions between these states. Each state can alter the behavior of the context
+without the need for complex conditional statements.
+
+
+#### **Key Components**:
+1. **Context**: Maintains an instance of a `State` and delegates behavior to the current state object.
+2. **State Interface**: Declares methods that each state class will implement.
+3. **Concrete States**: Implement the behavior associated with a particular state of the context.
+
+-----------------------------------------------------------------------------------------------------
+
+### **Real-Time Example: ATM Machine**
+
+#### Scenario:
+An ATM machine can be in several states:
+- **Card Inserted**: The user has inserted the card and needs to enter the PIN.
+- **PIN Entered**: The user has entered the PIN and can now withdraw money.
+- **No Card**: The ATM is idle, waiting for a user to insert a card.
+- **Out of Service**: The ATM is out of cash and can no longer serve users.
+
+Each state defines a different set of behaviors, such as handling PIN input, cash withdrawal, etc.
+
+---
+
+### **LLD for ATM State Pattern**
+
+#### 1. **State Interface**
+The `ATMState` interface defines actions that can occur in any state of the ATM.
+
+```java
+public interface ATMState {
+    void insertCard();
+    void ejectCard();
+    void enterPin(int pin);
+    void withdrawCash(int amount);
+}
+```
+
+#### 2. **Concrete States**
+Each concrete state represents a specific state of the ATM and implements the behavior related to that state.
+
+##### **NoCardState**:
+```java
+public class NoCardState implements ATMState {
+    private ATMMachine atmMachine;
+
+    public NoCardState(ATMMachine atmMachine) {
+        this.atmMachine = atmMachine;
+    }
+
+    @Override
+    public void insertCard() {
+        System.out.println("Card inserted.");
+        atmMachine.setState(atmMachine.getHasCardState());
+    }
+
+    @Override
+    public void ejectCard() {
+        System.out.println("No card to eject.");
+    }
+
+    @Override
+    public void enterPin(int pin) {
+        System.out.println("Please insert a card first.");
+    }
+
+    @Override
+    public void withdrawCash(int amount) {
+        System.out.println("Please insert a card first.");
+    }
+}
+```
+
+##### **HasCardState**:
+```java
+public class HasCardState implements ATMState {
+    private ATMMachine atmMachine;
+
+    public HasCardState(ATMMachine atmMachine) {
+        this.atmMachine = atmMachine;
+    }
+
+    @Override
+    public void insertCard() {
+        System.out.println("Card already inserted.");
+    }
+
+    @Override
+    public void ejectCard() {
+        System.out.println("Card ejected.");
+        atmMachine.setState(atmMachine.getNoCardState());
+    }
+
+    @Override
+    public void enterPin(int pin) {
+        if (pin == 1234) {
+            System.out.println("Correct PIN.");
+            atmMachine.setState(atmMachine.getHasPinState());
+        } else {
+            System.out.println("Incorrect PIN. Try again.");
+        }
+    }
+
+    @Override
+    public void withdrawCash(int amount) {
+        System.out.println("Enter PIN first.");
+    }
+}
+```
+
+##### **HasPinState**:
+```java
+public class HasPinState implements ATMState {
+    private ATMMachine atmMachine;
+
+    public HasPinState(ATMMachine atmMachine) {
+        this.atmMachine = atmMachine;
+    }
+
+    @Override
+    public void insertCard() {
+        System.out.println("Card already inserted.");
+    }
+
+    @Override
+    public void ejectCard() {
+        System.out.println("Card ejected.");
+        atmMachine.setState(atmMachine.getNoCardState());
+    }
+
+    @Override
+    public void enterPin(int pin) {
+        System.out.println("PIN already entered.");
+    }
+
+    @Override
+    public void withdrawCash(int amount) {
+        if (amount <= atmMachine.getCashInMachine()) {
+            System.out.println("Dispensing " + amount + " cash.");
+            atmMachine.setCashInMachine(atmMachine.getCashInMachine() - amount);
+
+            if (atmMachine.getCashInMachine() == 0) {
+                atmMachine.setState(atmMachine.getOutOfServiceState());
+            } else {
+                atmMachine.setState(atmMachine.getNoCardState());
+            }
+        } else {
+            System.out.println("Not enough cash in machine.");
+            atmMachine.setState(atmMachine.getNoCardState());
+        }
+    }
+}
+```
+
+##### **OutOfServiceState**:
+```java
+public class OutOfServiceState implements ATMState {
+    private ATMMachine atmMachine;
+
+    public OutOfServiceState(ATMMachine atmMachine) {
+        this.atmMachine = atmMachine;
+    }
+
+    @Override
+    public void insertCard() {
+        System.out.println("Machine is out of service.");
+    }
+
+    @Override
+    public void ejectCard() {
+        System.out.println("No card to eject.");
+    }
+
+    @Override
+    public void enterPin(int pin) {
+        System.out.println("Machine is out of service.");
+    }
+
+    @Override
+    public void withdrawCash(int amount) {
+        System.out.println("Machine is out of service.");
+    }
+}
+```
+
+#### 3. **Context Class (ATMMachine)**
+
+The context class, `ATMMachine`, maintains a reference to the current state and allows transitions between states.
+
+```java
+public class ATMMachine {
+    private ATMState noCardState;
+    private ATMState hasCardState;
+    private ATMState hasPinState;
+    private ATMState outOfServiceState;
+
+    private ATMState currentState;
+    private int cashInMachine;
+
+    public ATMMachine(int cashInMachine) {
+        this.noCardState = new NoCardState(this);
+        this.hasCardState = new HasCardState(this);
+        this.hasPinState = new HasPinState(this);
+        this.outOfServiceState = new OutOfServiceState(this);
+
+        this.cashInMachine = cashInMachine;
+
+        if (cashInMachine > 0) {
+            this.currentState = noCardState;
+        } else {
+            this.currentState = outOfServiceState;
+        }
+    }
+
+    public void insertCard() {
+        currentState.insertCard();
+    }
+
+    public void ejectCard() {
+        currentState.ejectCard();
+    }
+
+    public void enterPin(int pin) {
+        currentState.enterPin(pin);
+    }
+
+    public void withdrawCash(int amount) {
+        currentState.withdrawCash(amount);
+    }
+
+    // Methods to set state
+    public void setState(ATMState state) {
+        this.currentState = state;
+    }
+
+    // Getter methods for each state
+    public ATMState getNoCardState() {
+        return noCardState;
+    }
+
+    public ATMState getHasCardState() {
+        return hasCardState;
+    }
+
+    public ATMState getHasPinState() {
+        return hasPinState;
+    }
+
+    public ATMState getOutOfServiceState() {
+        return outOfServiceState;
+    }
+
+    public int getCashInMachine() {
+        return cashInMachine;
+    }
+
+    public void setCashInMachine(int cashInMachine) {
+        this.cashInMachine = cashInMachine;
+    }
+}
+```
+
+---
+
+### **Usage Example**:
+
+```java
+public class ATMClient {
+    public static void main(String[] args) {
+        ATMMachine atmMachine = new ATMMachine(500);  // ATM has $500 initially
+
+        atmMachine.insertCard();
+        atmMachine.enterPin(1234);
+        atmMachine.withdrawCash(100);
+
+        atmMachine.insertCard();
+        atmMachine.enterPin(1234);
+        atmMachine.withdrawCash(600);  // ATM doesn't have enough cash
+
+        atmMachine.insertCard();
+        atmMachine.enterPin(1234);
+    }
+}
+```
+
+### **Output**:
+```
+Card inserted.
+Correct PIN.
+Dispensing 100 cash.
+Card inserted.
+Correct PIN.
+Not enough cash in machine.
+Card inserted.
+Correct PIN.
+```
+
+---
+
+### **Real-World Example Breakdown**:
+- **Context**: The `ATMMachine` represents the ATM, and it maintains its current state.
+- **States**: The different states (`NoCardState`, `HasCardState`, `HasPinState`, and `OutOfServiceState`) represent different conditions in which the ATM can operate.
+- **Behavior**: Each state encapsulates the behavior of the ATM when it's in that particular state. For example, in `HasCardState`, the ATM can accept PIN entry but can't dispense cash until the correct PIN is provided.
+
+### **Advantages**:
+1. **Clear separation of concerns**: Each state handles its own logic, making the code modular and easy to extend.
+2. **State transitions**: The state objects themselves control the transitions between different states, which reduces the need for complex conditional logic in the context class.
+3. **Reusability**: Each state can be reused and managed independently, leading to cleaner and more maintainable code.
+
+---
+
+### Conclusion:
+The **State pattern** is highly effective when an object needs to exhibit different behavior depending on its internal state, as demonstrated with the ATM machine example. By encapsulating state-specific behavior into separate classes and delegating state transitions, we achieve a flexible, scalable, and maintainable design.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+The **State** and **Strategy** design patterns share a lot of similarities, as both are based on composition and delegation. However, there are key differences in how they operate and are applied. Here's how **State** can be seen as an extension of **Strategy**:
+
+### 1. **Common Characteristics:**
+   - **Both use composition**: Both patterns delegate behavior to separate objects (either states or strategies). This means the main object (the **Context**) holds a reference to one of these helper objects and delegates some of its work to them.
+   - **Both encapsulate behavior**: The goal of both patterns is to encapsulate different behaviors or algorithms in separate classes, so that the context can change its behavior dynamically by changing the object it delegates to.
+
+### 2. **Differences in Relationships Between Behaviors:**
+
+#### **Strategy Pattern**:
+   - **Independent Strategies**: In the Strategy pattern, the strategies are completely independent of one another. Each strategy represents a distinct algorithm or behavior, and one strategy is interchangeable with another without any awareness of other strategies.
+   - **No Interaction Between Strategies**: A strategy doesn't know about other strategies and can't influence which strategy should be used next. The context decides which strategy to use based on external factors.
+   - **Example**: In a sorting system, the Strategy pattern could encapsulate different sorting algorithms (e.g., QuickSort, MergeSort, BubbleSort). The client decides which algorithm (strategy) to use, but one strategy never interacts with another.
+
+#### **State Pattern**:
+   - **Interdependent States**: In the State pattern, the different states can be dependent on one another. Each state can not only define behavior but also alter the state of the **Context** by transitioning to a different state.
+   - **States Can Change the Context's State**: A state object can decide to change the current state of the context based on its internal logic. This gives state objects more control over the behavior of the context than strategies.
+   - **Example**: In a document editing system, a document could be in different states (e.g., Draft, Moderation, Published). Each state can change the document's behavior (e.g., editing allowed in the Draft state, but not in the Published state). Moreover, the Draft state can transition the document to the Moderation state, meaning states are aware of and interact with each other.
+
+### **Key Differences in Behavior and Interaction**:
+
+1. **Behavior Dependency**:
+   - **Strategy**: The strategies are interchangeable and don’t depend on one another. They don't influence the context beyond executing their assigned behavior.
+   - **State**: States often depend on other states because the logic within one state may lead to a transition to another state. The current state can change the state of the context.
+
+2. **Transition Control**:
+   - **Strategy**: The context controls which strategy to apply. The strategies themselves have no say in changing the strategy or influencing the flow of execution.
+   - **State**: Each state can alter the context’s current state. A state object has the authority to change the context's state to another state, providing more dynamic control over the flow.
+
+### **When to Use State vs. Strategy**:
+- **Use Strategy** when you want to swap between different algorithms or behaviors that are independent of each other.
+- **Use State** when the object can transition between different states, where each state has its own behavior, and the state transitions can be triggered by the current state itself.
+
+---
+
+### **Example: Comparing State and Strategy**
+
+#### **Strategy Example**:
+Suppose you are building a payment system. You could use the Strategy pattern to choose between different payment methods (PayPal, CreditCard, Bitcoin). Each payment method would implement the same interface and perform a different algorithm. The client decides which strategy (payment method) to use, and the strategies are independent.
+
+```java
+// Strategy interface
+public interface PaymentStrategy {
+    void pay(double amount);
+}
+
+// Concrete strategies
+public class PayPalStrategy implements PaymentStrategy {
+    @Override
+    public void pay(double amount) {
+        System.out.println("Paid " + amount + " using PayPal.");
+    }
+}
+
+public class CreditCardStrategy implements PaymentStrategy {
+    @Override
+    public void pay(double amount) {
+        System.out.println("Paid " + amount + " using Credit Card.");
+    }
+}
+
+// Context
+public class ShoppingCart {
+    private PaymentStrategy paymentStrategy;
+
+    public void setPaymentStrategy(PaymentStrategy paymentStrategy) {
+        this.paymentStrategy = paymentStrategy;
+    }
+
+    public void checkout(double amount) {
+        paymentStrategy.pay(amount);
+    }
+}
+```
+
+In this example, `PayPalStrategy` and `CreditCardStrategy` are independent of each other. The `ShoppingCart` decides which strategy to use, and no strategy changes the flow.
+
+#### **State Example**:
+In a document processing system, you could use the State pattern to represent different states of a document (Draft, Moderation, Published). Each state can perform its own behavior, and states are aware of each other, often transitioning between one another.
+
+```java
+// State interface
+public interface DocumentState {
+    void publish(DocumentContext context);
+    void reject(DocumentContext context);
+}
+
+// Concrete States
+public class DraftState implements DocumentState {
+    @Override
+    public void publish(DocumentContext context) {
+        System.out.println("Document is being reviewed.");
+        context.setState(new ModerationState());
+    }
+
+    @Override
+    public void reject(DocumentContext context) {
+        System.out.println("Draft can't be rejected.");
+    }
+}
+
+public class ModerationState implements DocumentState {
+    @Override
+    public void publish(DocumentContext context) {
+        System.out.println("Document is published.");
+        context.setState(new PublishedState());
+    }
+
+    @Override
+    public void reject(DocumentContext context) {
+        System.out.println("Document rejected.");
+        context.setState(new DraftState());
+    }
+}
+
+public class PublishedState implements DocumentState {
+    @Override
+    public void publish(DocumentContext context) {
+        System.out.println("Document is already published.");
+    }
+
+    @Override
+    public void reject(DocumentContext context) {
+        System.out.println("Published document can't be rejected.");
+    }
+}
+
+// Context
+public class DocumentContext {
+    private DocumentState state;
+
+    public DocumentContext() {
+        this.state = new DraftState();
+    }
+
+    public void setState(DocumentState state) {
+        this.state = state;
+    }
+
+    public void publish() {
+        state.publish(this);
+    }
+
+    public void reject() {
+        state.reject(this);
+    }
+}
+```
+
+In this example, when the document is in `DraftState`, it can transition to `ModerationState`, and `ModerationState` can transition to `PublishedState`. Each state is aware of the next possible state and alters the context’s state as needed.
+
+---
+
+### Conclusion:
+- **Strategy** is useful for swapping out independent behaviors or algorithms. The client chooses which strategy to apply.
+- **State** allows objects to change their behavior dynamically based on internal state. States can interact and transition between one another, giving them more control over the context.
+
+State pattern can be thought of as an extension of the Strategy pattern in that it introduces the ability for these "strategies" (states) to dynamically change over time and alter each other’s flow.
