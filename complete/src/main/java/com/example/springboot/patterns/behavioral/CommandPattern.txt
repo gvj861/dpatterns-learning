@@ -1,0 +1,212 @@
+The Command Design Pattern is a behavioral design pattern that encapsulates a request as an object,
+thereby allowing you to parameterize clients with queues, requests, and operations.
+It decouples the object that invokes the operation from the one that knows how to perform it,
+providing a way to package method calls as objects.
+
+Key Components of the Command Pattern:
+Command Interface: This declares an abstract method for executing commands.
+Concrete Command: Implements the command interface by binding a specific receiver to an action.
+Receiver: The class that knows how to perform the work related to the request.
+Invoker: Responsible for initiating commands. It maintains a reference to a command and calls the command's execute method.
+Client: Creates concrete commands and assigns them to an invoker.
+
+The **Command Pattern** is a great fit for implementing undo/redo functionality in a text editor.
+In this example, we’ll model operations like typing and deleting text as commands.
+Each command will support the ability to undo and redo actions.
+We’ll also use a history mechanism to store the executed commands.
+
+### Text Editor Undo/Redo Command Pattern - LLD Example
+
+#### Key Components
+
+1. **Command Interface**: Declares `execute()` and `undo()` methods.
+2. **Concrete Commands**: Implement the command interface for specific operations like typing and deleting text.
+3. **Receiver (TextEditor)**: This is the text editor where text changes (like typing and deleting) will happen.
+4. **Invoker (CommandManager)**: Stores the commands and handles invoking and undoing them.
+5. **Client**: Initializes the commands and invokes them through the `CommandManager`.
+
+### 1. **Command Interface**
+
+```java
+public interface Command {
+    void execute();
+    void undo();
+}
+```
+
+### 2. **Receiver (TextEditor)**
+
+The `TextEditor` class acts as the receiver that actually modifies the text.
+
+```java
+public class TextEditor {
+    private StringBuilder text = new StringBuilder();
+
+    public void addText(String newText) {
+        text.append(newText);
+    }
+
+    public void deleteText(int length) {
+        if (length > text.length()) {
+            length = text.length();
+        }
+        text.delete(text.length() - length, text.length());
+    }
+
+    public String getText() {
+        return text.toString();
+    }
+}
+```
+
+### 3. **Concrete Commands**
+
+Each command will implement the `Command` interface. We'll implement two basic commands: typing text and deleting text.
+
+#### TypingCommand
+
+```java
+public class TypingCommand implements Command {
+    private TextEditor editor;
+    private String textToAdd;
+
+    public TypingCommand(TextEditor editor, String textToAdd) {
+        this.editor = editor;
+        this.textToAdd = textToAdd;
+    }
+
+    @Override
+    public void execute() {
+        editor.addText(textToAdd);
+    }
+
+    @Override
+    public void undo() {
+        editor.deleteText(textToAdd.length());  // Undo typing by deleting the text
+    }
+}
+```
+
+#### DeletingCommand
+
+```java
+public class DeletingCommand implements Command {
+    private TextEditor editor;
+    private int deleteLength;
+    private String deletedText;
+
+    public DeletingCommand(TextEditor editor, int deleteLength) {
+        this.editor = editor;
+        this.deleteLength = deleteLength;
+    }
+
+    @Override
+    public void execute() {
+        // Capture the deleted text for undoing
+        String currentText = editor.getText();
+        deletedText = currentText.substring(currentText.length() - deleteLength);
+        editor.deleteText(deleteLength);
+    }
+
+    @Override
+    public void undo() {
+        editor.addText(deletedText);  // Restore the deleted text
+    }
+}
+```
+
+### 4. **Invoker (CommandManager)**
+
+The `CommandManager` is responsible for executing commands and managing undo/redo functionality.
+
+```java
+import java.util.Stack;
+
+public class CommandManager {
+    private Stack<Command> commandHistory = new Stack<>();
+    private Stack<Command> redoStack = new Stack<>();
+
+    public void executeCommand(Command command) {
+        command.execute();
+        commandHistory.push(command);
+        redoStack.clear();  // Clear the redo stack whenever a new command is executed
+    }
+
+    public void undo() {
+        if (!commandHistory.isEmpty()) {
+            Command command = commandHistory.pop();
+            command.undo();
+            redoStack.push(command);  // Move the undone command to redo stack
+        }
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Command command = redoStack.pop();
+            command.execute();
+            commandHistory.push(command);  // Move the redone command back to history
+        }
+    }
+}
+```
+
+### 5. **Client**
+
+The client sets up the text editor, the commands, and the `CommandManager` to handle operations.
+
+```java
+public class Client {
+    public static void main(String[] args) {
+        TextEditor editor = new TextEditor();
+        CommandManager manager = new CommandManager();
+
+        // Typing some text
+        Command typingHello = new TypingCommand(editor, "Hello");
+        manager.executeCommand(typingHello);
+        System.out.println("Text after typing 'Hello': " + editor.getText());
+
+        // Typing more text
+        Command typingWorld = new TypingCommand(editor, " World");
+        manager.executeCommand(typingWorld);
+        System.out.println("Text after typing ' World': " + editor.getText());
+
+        // Undo last typing command
+        manager.undo();
+        System.out.println("Text after undo: " + editor.getText());
+
+        // Redo last typing command
+        manager.redo();
+        System.out.println("Text after redo: " + editor.getText());
+
+        // Deleting last 5 characters
+        Command deleteCommand = new DeletingCommand(editor, 5);
+        manager.executeCommand(deleteCommand);
+        System.out.println("Text after deleting last 5 characters: " + editor.getText());
+
+        // Undo the delete command
+        manager.undo();
+        System.out.println("Text after undoing delete: " + editor.getText());
+    }
+}
+```
+
+### Output Example:
+```
+Text after typing 'Hello': Hello
+Text after typing ' World': Hello World
+Text after undo: Hello
+Text after redo: Hello World
+Text after deleting last 5 characters: Hello
+Text after undoing delete: Hello World
+```
+
+### Sequence of Interaction:
+1. **Client** creates a `TextEditor`, commands (`TypingCommand`, `DeletingCommand`), and a `CommandManager`.
+2. Each time a command is executed, it is stored in the `commandHistory` stack.
+3. When `undo()` is called, the most recent command is popped from the `commandHistory` and its `undo()` method is invoked. This command is then pushed to the `redoStack`.
+4. When `redo()` is called, the command is popped from the `redoStack`, re-executed, and pushed back to the `commandHistory`.
+
+### Benefits:
+- **Reversible Actions**: Enables the ability to undo/redo complex operations.
+- **Decoupling**: The editor and its commands are decoupled from the invoker (manager), making it easier to add new commands.
+- **Command History**: You can easily maintain a history of commands and apply operations to revert or reapply actions.

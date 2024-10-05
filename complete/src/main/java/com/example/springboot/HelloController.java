@@ -30,6 +30,9 @@ import com.example.springboot.Proxy.IPaymentService;
 import com.example.springboot.Proxy.ProxyRazor;
 import com.example.springboot.Proxy.RazorPayService;
 import com.example.springboot.State.ATMMachine;
+import com.example.springboot.command.AC;
+import com.example.springboot.command.RemoteControl;
+import com.example.springboot.command.TurnOnAcCommand;
 import com.example.springboot.dialog.Dialog;
 import com.example.springboot.dialog.HtmlDialog;
 import com.example.springboot.document.Document;
@@ -148,6 +151,16 @@ public class HelloController {
 		sbi.insertPin(1234);
 		sbi.requestCash(100);
 		sbi.ejectCard();
+
+
+		RemoteControl rc = new RemoteControl();
+		AC ac = new AC();
+		rc.setCommand(new TurnOnAcCommand(ac));
+
+		rc.pressButton();
+		rc.undoButton();
+		rc.pressButton();
+
 
 
 		List<User> res = userRepo.findAll();
