@@ -1,0 +1,194 @@
+The Mediator Pattern is a behavioral design pattern that centralizes communication between different objects
+to reduce the complexity of their interactions.
+Rather than allowing objects to communicate directly with each other, the mediator acts as an intermediary,
+controlling and coordinating their interactions. This leads to a loosely coupled system,
+where objects don't need to know about the implementation of each other, only the mediator.
+
+Real-Time Use Cases for the Mediator Pattern
+
+1. GUI Frameworks (Dialog boxes): Buttons, text fields, checkboxes, etc., can communicate with each other via a dialog manager (mediator).
+2. Air Traffic Control Systems: An air traffic control tower acts as a mediator between airplanes to ensure safe coordination.
+3. Chat Applications: The chatroom (mediator) coordinates communication between users. Users don’t communicate directly with each other but send messages via the chatroom.
+4. E-commerce Systems: The Mediator coordinates between different services like payment, order processing, inventory, and delivery services without these systems directly calling one another.
+
+Components of the Mediator Pattern:
+1. Mediator Interface: Defines the contract for how different components communicate.
+2. Concrete Mediator: Implements the mediator interface and coordinates interactions between components.
+3. Colleague Interface (Components): Represents the components that interact with the mediator.
+ Each component only knows about the mediator, not other components.
+4. Concrete Colleague: Implements the Colleague interface and communicates through the mediator.
+
+The **Mediator Pattern** is a behavioral design pattern that centralizes communication between different objects to reduce the complexity of their interactions. Rather than allowing objects to communicate directly with each other, the **mediator** acts as an intermediary, controlling and coordinating their interactions. This leads to a **loosely coupled system**, where objects don't need to know about the implementation of each other, only the mediator.
+
+### Real-Time Use Cases for the Mediator Pattern
+
+- **GUI Frameworks (Dialog boxes)**: Buttons, text fields, checkboxes, etc., can communicate with each other via a dialog manager (mediator).
+- **Air Traffic Control Systems**: An air traffic control tower acts as a mediator between airplanes to ensure safe coordination.
+- **Chat Applications**: The chatroom (mediator) coordinates communication between users. Users don’t communicate directly with each other but send messages via the chatroom.
+- **E-commerce Systems**: The Mediator coordinates between different services like payment, order processing, inventory, and delivery services without these systems directly calling one another.
+
+### Components of the Mediator Pattern:
+1. **Mediator Interface**: Defines the contract for how different components communicate.
+2. **Concrete Mediator**: Implements the mediator interface and coordinates interactions between components.
+3. **Colleague Interface (Components)**: Represents the components that interact with the mediator. Each component only knows about the mediator, not other components.
+4. **Concrete Colleague**: Implements the Colleague interface and communicates through the mediator.
+
+---
+
+### Mediator Pattern - Low-Level Design (LLD)
+
+### Real-Time Example 2: Air Traffic Control System
+
+In an air traffic control system, aircraft don’t communicate directly with each other.
+Instead, they communicate with the **Air Traffic Controller** (ATC), which acts as the mediator.
+The ATC coordinates the landing and take-off of planes, ensuring safe separation.
+
+#### 1. **Mediator Interface**
+
+```java
+public interface ATCMediator {
+    void registerAircraft(Aircraft aircraft);
+    void sendLandingRequest(Aircraft aircraft);
+    void notifyLandingSuccess(Aircraft aircraft);
+}
+```
+
+#### 2. **Concrete Mediator**
+
+The `AirTrafficControl` class coordinates communication between planes.
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+public class AirTrafficControl implements ATCMediator {
+    private List<Aircraft> aircrafts;
+    private boolean runwayAvailable = true;
+
+    public AirTrafficControl() {
+        this.aircrafts = new ArrayList<>();
+    }
+
+    @Override
+    public void registerAircraft(Aircraft aircraft) {
+        aircrafts.add(aircraft);
+    }
+
+    @Override
+    public void sendLandingRequest(Aircraft aircraft) {
+        if (runwayAvailable) {
+            System.out.println(aircraft.getName() + " is clear to land.");
+            runwayAvailable = false;
+        } else {
+            System.out.println(aircraft.getName() + " please hold, runway not available.");
+        }
+    }
+
+    @Override
+    public void notifyLandingSuccess(Aircraft aircraft) {
+        System.out.println(aircraft.getName() + " has landed successfully.");
+        runwayAvailable = true;
+    }
+}
+```
+
+#### 3. **Colleague Interface (Aircraft)**
+
+Each aircraft interacts with the mediator for landing coordination.
+
+```java
+public abstract class Aircraft {
+    protected ATCMediator atcMediator;
+    protected String name;
+
+    public Aircraft(ATCMediator atcMediator, String name) {
+        this.atcMediator = atcMediator;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public abstract void requestLanding();
+    public abstract void land();
+}
+```
+
+#### 4. **Concrete Colleague (Specific Aircraft)**
+
+Different planes use the `AirTrafficControl` (mediator) to request landing.
+
+```java
+public class Boeing747 extends Aircraft {
+
+    public Boeing747(ATCMediator atcMediator, String name) {
+        super(atcMediator, name);
+    }
+
+    @Override
+    public void requestLanding() {
+        System.out.println(name + " requesting landing.");
+        atcMediator.sendLandingRequest(this);
+    }
+
+    @Override
+    public void land() {
+        System.out.println(name + " landing.");
+        atcMediator.notifyLandingSuccess(this);
+    }
+}
+```
+
+#### 5. **Client Code**
+
+```java
+public class ATCClient {
+    public static void main(String[] args) {
+        // Create the mediator
+        ATCMediator atc = new AirTrafficControl();
+
+        // Create aircrafts
+        Aircraft boeing1 = new Boeing747(atc, "Boeing 747-1");
+        Aircraft boeing2 = new Boeing747(atc, "Boeing 747-2");
+
+        // Register aircrafts to ATC
+        atc.registerAircraft(boeing1);
+        atc.registerAircraft(boeing2);
+
+        // Aircrafts request landing
+        boeing1.requestLanding();
+        boeing1.land();
+
+        boeing2.requestLanding();  // Will have to wait if runway is busy
+        boeing2.land();
+    }
+}
+```
+
+### Output:
+
+```
+Boeing 747-1 requesting landing.
+Boeing 747-1 is clear to land.
+Boeing 747-1 landing.
+Boeing 747-1 has landed successfully.
+Boeing 747-2 requesting landing.
+Boeing 747-2 is clear to land.
+Boeing 747-2 landing.
+Boeing 747-2 has landed successfully.
+```
+
+In this real-world example:
+- The **AirTrafficControl** acts as the mediator.
+- The aircraft are the **colleagues**, and they request landing via the mediator.
+- The mediator (ATC) coordinates their landing to ensure no collisions or miscommunication.
+
+---
+
+### Advantages of Mediator Pattern
+
+1. **Loose Coupling**: Colleagues are decoupled and do not interact directly with each other, leading to a more maintainable system.
+2. **Single Responsibility**: The mediator handles communication between objects, so the colleagues have only one responsibility.
+3. **Centralized Communication**: All interactions are managed
+

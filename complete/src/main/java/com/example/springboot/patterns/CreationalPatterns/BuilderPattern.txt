@@ -1,4 +1,5 @@
-The Builder Pattern is a creational design pattern that allows for the construction of complex objects step by step. It provides more control over the construction process compared to constructors or the Factory Pattern,
+The Builder Pattern is a creational design pattern that allows for the construction of complex objects step by step.
+It provides more control over the construction process compared to constructors or the Factory Pattern,
 especially when an object has many fields, some of which are optional.
 
 ### Steps to Implement the Builder Pattern in Java

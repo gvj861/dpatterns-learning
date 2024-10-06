@@ -1,4 +1,6 @@
-The Prototype design pattern is useful in scenarios where creating a new instance of a class is either costly or complex. By using this pattern, you can create new objects by copying or cloning existing ones, which can be more efficient. Here's a real-world use case for the Prototype design pattern:
+The Prototype design pattern is useful in scenarios where creating a new instance of a class is either costly or complex.
+By using this pattern, you can create new objects by copying or cloning existing ones,
+which can be more efficient. Here's a real-world use case for the Prototype design pattern:
 
 ### Real-World Use Case: Document Management System
 
