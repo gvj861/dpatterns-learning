@@ -3,7 +3,10 @@ Upon receiving a request, each handler decides either to process the request or 
 in the chain.
 
 
-To implement the **Chain of Responsibility (CoR)** pattern in production-level code using **Spring Boot**, we can utilize several techniques, such as interface-based design, Spring's dependency injection (DI), and annotations. In a Spring Boot application, the CoR pattern can be used to delegate responsibilities along a chain of handlers, where each handler processes part of the request or passes it down the chain if it cannot handle it.
+To implement the **Chain of Responsibility (CoR)** pattern in production-level code using **Spring Boot**, we can utilize several techniques,
+such as interface-based design, Spring's dependency injection (DI), and annotations.
+In a Spring Boot application, the CoR pattern can be used to delegate responsibilities along a chain of handlers,
+where each handler processes part of the request or passes it down the chain if it cannot handle it.
 
 Let’s break this down step by step:
 

@@ -130,7 +130,7 @@ public class HelloController {
 			System.out.println(it.next());
 		}
 
-		FraudCheckHandler fc = new FraudCheckHandler();
+		IPaymentHandler fc = new FraudCheckHandler();
 		BalanceCheckHandler bc = new BalanceCheckHandler();
 		fc.setNext(bc);
 		bc.setNext(new PaymentProcessHandler());
